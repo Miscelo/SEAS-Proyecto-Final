@@ -26,13 +26,11 @@ typedef struct _Pregunta_ {         //Definición de la estructura del tipo 'Non
     int respC;
     int respD;
     int iteraciones;                //número de veces que se ha ejecutado la encusta
+    struct _Pregunta_ *next;
 } Pregunta;
 
-// ??????
-typedef struct _Stack_ {
-    struct Pregunta *pregunta;
-    struct _Stack_ *next;
-} Stack;
+Pregunta *first = NULL;
+Pregunta *list = NULL;
 
 
 
@@ -58,6 +56,13 @@ void writePreguntas(){
 }
 
 
+/* */
+void writeStatistics(){
+
+}
+
+
+
 /* Añade un elemento en la pila */
 void push(){
 
@@ -77,3 +82,25 @@ int main(){
 
     return EXIT_SUCCESS;
 }
+
+
+
+
+/*
+Al seleccionar la opción de “Iniciar encuesta” el procedimiento será:
+
+    1. Cargar la encuesta en una lista enlazada, cada pregunta será un nodo de la lista.
+
+    2. Preguntar al usuario por el número de preguntas que formaran la encuesta definitiva que haremos al usuario.
+
+    3. Cargar una nueva lista seleccionando de la lista anterior de modo aleatorio el número de preguntas (nodos) indicado en el apartado anterior.
+
+    4. Preguntar al usuario el número de veces que se debe de repetir la encuesta.
+
+    5. Ejecutar la encuesta tantas veces como se haya indicado almacenando los resultados en el lugar adecuado para mostrar posteriormente la estadística.
+
+    6. Una vez finalizada la encuesta mostrar los resultados y cargar el fichero con los mismos.
+
+Al seleccionar la opción de “Agregar preguntas al fichero de preguntas” simplemente se agregaran preguntas al fichero original. A la entrega del trabajo deben existir preguntas almacenadas en la encuesta.´
+Por último, al seleccionar la opción 3, simplemente se mostrará el fichero resultado_encuesta donde aparecerán las preguntas y las estadísticas de la última encuesta realizada.
+*/
