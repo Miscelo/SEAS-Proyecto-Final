@@ -29,17 +29,28 @@ typedef struct _Pregunta_ {         //Definición de la estructura del tipo 'Non
     struct _Pregunta_ *next;
 } Pregunta;
 
-Pregunta *first = NULL;
-Pregunta *list = NULL;
+Pregunta *first = NULL;             //instancia de la estructura, puntero al primer elemento de la lista
+Pregunta *list = NULL;              //lista
 
 
 
 
-void menu(){
+
+
+char menu(){
+     char c;
+    printf("\n**********************  Encuesta - Menu  *************************\n\n");
     printf("(1) Iniciar encusta\n");
     printf("(2) Agregar preguntas al fichero de preguntas\n");
     printf("(3) Visualizar el fichero con los últimos resultados\n");
     printf("(4) Salir\n");
+    printf("\tElige un número [1-4]: ");
+    do{
+        fflush(stdin);
+        c = getchar();
+    }while(c<'0'||c>'5');
+    printf("\n\n");
+    return c;
 }
 
 
@@ -64,9 +75,40 @@ void writeStatistics(){
 
 
 /* Añade un elemento en la pila */
-void push(){
+void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB, int rC, int rD, int iter){
+    Pregunta *new = malloc(sizeof(Pregunta));
+    if(new == NULL){
+        printf("ERROR, no se podía asignar espacio en la memoría RAM!\n");
+    }
+    strcpy(new->texto, pregunta);
+    new->next = NULL;
+    new->tamano =  letras;  //????
+    new->numPregunta = nr;
+    new->respA = rA;
+    new->respB = rB;
+    new->respC = rC;
+    new->respD = rD;
+    new->iteraciones =  iter;
+    new->next = NULL;
+    if(first == NULL){              //Añade primer elemento a la lista si no existe aún.
+        first = new;
+        list = new;
+    } else  {                      //Añade un elemento a la lista si ya contiene mínimo un Elemento.
+    
+        list = first;
+        while(list!=NULL){
+            if(list->next == NULL){
+                list->next = new;
+                break;
+            } else{
+                list = list->next;
+            }
+        }
 
+    }
 }
+
+
 
 /* Retira un elemento de la pila */
 void pop(){
@@ -74,11 +116,19 @@ void pop(){
 }
 
 
-
+void printList(){
+    list = first;
+    while(list!=NULL){
+        printf("%s\n", list->texto);
+        list = list->next;
+    }
+}
 
 
 int main(){
-
+    insertar("Que tal la atención?", 22, 1, 30, 25, 24, 21, 1);
+    insertar("Que le ha aparecido la materia estudiado?", 41, 2, 40, 30, 22, 8, 1);
+    printList();
 
     return EXIT_SUCCESS;
 }
