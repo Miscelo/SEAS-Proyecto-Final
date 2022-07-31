@@ -29,8 +29,8 @@ typedef struct _Pregunta_ {         //Definición de la estructura del tipo 'Non
     struct _Pregunta_ *next;
 } Pregunta;
 
-Pregunta *first = NULL;             //instancia de la estructura, puntero al primer elemento de la lista
-Pregunta *list = NULL;              //lista
+Pregunta *pNodo = NULL;             //instancia de la estructura, puntero al primer elemento de la lista
+Pregunta *lista = NULL;              //lista
 
 
 
@@ -90,18 +90,18 @@ void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB
     new->respD = rD;
     new->iteraciones =  iter;
     new->next = NULL;
-    if(first == NULL){              //Añade primer elemento a la lista si no existe aún.
-        first = new;
-        list = new;
+    if(pNodo == NULL){              //Añade primer elemento a la lista si no existe aún.
+        pNodo = new;
+        lista = new;
     } else  {                      //Añade un elemento a la lista si ya contiene mínimo un Elemento.
     
-        list = first;
-        while(list!=NULL){
-            if(list->next == NULL){
-                list->next = new;
+        lista = pNodo;
+        while(lista!=NULL){
+            if(lista->next == NULL){
+                lista->next = new;
                 break;
             } else{
-                list = list->next;
+                lista = lista->next;
             }
         }
 
@@ -111,16 +111,41 @@ void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB
 
 
 /* Retira un elemento de la pila */
-void pop(){
-
+void eliminar(int nr_pregunta){
+    bool numero_existe = False;
+    lista = pNodo;  // la lista ponemos al prinicipio para luego recorrerla
+    //Primero buscamos el elemento anterior para cambiar la referencia de *next
+    Pregunta * anterior = NULL;
+    while(lista!=NULL){
+        if(lista->numPregunta == nr_pregunta){
+            numero_existe = True;
+            if(anterior==NULL){    //El caso de que el usuario quiere eleminar el primer elemento de la lista.
+                pNodo = NULL;
+                free(pNodo);
+                pNodo = lista->next;  //Si se bora el primer elemento, el segundo elemento se convierte en el primero
+            }
+            else{    //Caso que no se quiere anular el primero elemento. Estamos un elemento atras de lo que queremos eliminar
+                anterior->next = NULL;
+                free(anterior->next);  
+                anterior->next = lista->next;   //Vamos un pasa para adelante
+            }
+        }
+        anterior = lista;
+        lista = lista->next;
+    }
+    if(numero_existe == False){
+        printf("\tError borrar pregunta!\n" 
+                "\tLa pregunta con el número '%d' no existe!\n", nr_pregunta);
+    }
 }
 
 
+
 void printList(){
-    list = first;
-    while(list!=NULL){
-        printf("%s\n", list->texto);
-        list = list->next;
+    lista = pNodo;
+    while(lista!=NULL){
+        printf("%s\n", lista->texto);
+        lista = lista->next;
     }
 }
 
@@ -128,6 +153,9 @@ void printList(){
 int main(){
     insertar("Que tal la atención?", 22, 1, 30, 25, 24, 21, 1);
     insertar("Que le ha aparecido la materia estudiado?", 41, 2, 40, 30, 22, 8, 1);
+    insertar("Te ha gustado el curso?", 41, 3, 40, 30, 22, 8, 1);
+    insertar("Has aprendido lo esperado?", 41, 4, 40, 30, 22, 8, 1);
+    eliminar(3);
     printList();
 
     return EXIT_SUCCESS;
