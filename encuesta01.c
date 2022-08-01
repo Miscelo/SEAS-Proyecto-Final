@@ -29,6 +29,8 @@ typedef struct _Pregunta_ {         //Definición de la estructura del tipo 'Non
     struct _Pregunta_ *next;
 } Pregunta;
 
+
+/* Variables globales */
 Pregunta *pNodo = NULL;             //instancia de la estructura, puntero al primer elemento de la lista
 Pregunta *lista = NULL;              //lista
 
@@ -39,33 +41,29 @@ Pregunta *lista = NULL;              //lista
 
 char menu(){
      char c;
-    printf("\n**********************  Encuesta - Menu  *************************\n\n");
+
+    printf("\n*********************************************************\n");
+    printf("******************  Encuesta - Menu  ********************\n\n");
     printf("(1) Iniciar encusta\n");
     printf("(2) Agregar preguntas al fichero de preguntas\n");
     printf("(3) Visualizar el fichero con los últimos resultados\n");
     printf("(4) Salir\n");
-    printf("\tElige un número [1-4]: ");
+    printf("\n\tElige un número [1-4]: ");
     do{
         fflush(stdin);
         c = getchar();
-    }while(c<'0'||c>'5');
+    }while(c<'0'||c>'4');
     printf("\n\n");
     return c;
 }
 
 
 
-/* Lee el archivo de texto que incluye las preguntas*/
-void readPreguntas(){
-
-}
-
-
 /* Añade una pregunta nueva al archivo de texto de preguntas */
-void writePreguntas(){
+void writePregunta(char nombre_fichero[24], char pregunta[length_pregunta]);
 
-}
-
+/* Lee el fichero 'fichero.txt' completo y cada linea (pregunta) del fichero se añade a la lista como un elemento. */
+void readPreguntas(char nombre_fichero[24]);
 
 /* */
 void writeStatistics(){
@@ -73,8 +71,180 @@ void writeStatistics(){
 }
 
 
-
 /* Añade un elemento en la pila */
+void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB, int rC, int rD, int iter);
+
+/* Retira un elemento de la pila */
+void eliminar(int nr_pregunta);
+
+
+
+void agregarPreguntas(){
+    printf("*** Aquí puedes añadir nuevas preguntas a la encuesta! ***");
+
+}
+
+
+
+/*Función imprime la lista (Preguntas que han sido anteriormente añadido al archivo 'fichero.txt' */
+void printPreguntas(){
+    lista = pNodo;
+    if(pNodo == NULL){
+        printf("****************** Lista de Preguntas  ********************\n\n");
+        printf("   No hay preguntas añadidas a la lista aún!\n");
+        printf("\n*********************************************************\n");
+    }
+    else
+    {
+    printf("****************** Lista de Preguntas  ********************\n\n");
+    while(lista!=NULL){
+        printf("\t%d. %s\n", lista->numPregunta, lista->texto);
+        lista = lista->next;
+    }
+    printf("\n*********************************************************\n");
+    }
+}
+
+
+
+void printList(){
+    lista = pNodo;
+    while(lista!=NULL){
+        printf("%d. %s  Length: %d, Stats: A=%d, B=%d, C=%d, D=%d, Iter=%d\n", lista->numPregunta, lista->texto, lista->tamano, lista->respA, lista->respB, lista->respC, lista->respD, lista->iteraciones);
+        lista = lista->next;
+    }
+}
+
+
+int main(){
+    char fichero[12]="fichero.txt";
+
+    bool loop = True; //Valor para determinar el loop.
+    while(loop==True){
+        switch(menu()){
+            case '1':
+                    printf("*** Iniciar Encuesta ***\n"); 
+                    break;
+            case '2':
+                    printf("Agreegar preguntas\n");
+                    printf("*** Todas las preguntas añadidas ***\n");
+                    printPreguntas();
+                    char question[length_pregunta];
+                    fgets(question, length_pregunta, stdin);
+                    writePregunta(fichero, question);
+                    break;
+            case '3':
+                    printf("Fichero con resultados de las STATS\n");
+                    break;
+            case '4':
+                    printf("\n*********************************************************\n"
+                            "\t\t\tFIN DEL PROGRAMA\n"
+                            "*********************************************************\n");
+                    loop = False;
+                    break;
+            default:
+                    printf("\n*********************************************\n"
+                            "\tINPUT VALUE ERROR!\n"
+                            "Elige un numero del menú de 1 a 5 por favor.\n"
+                            "*********************************************\n");
+                    break;
+            
+        }
+    }
+
+
+
+
+    /*
+    writePregunta(fichero, "Te ha gustado el curso?");
+    writePregunta(fichero, "WTF?");
+    writePregunta(fichero, "Que tál el profesor?");
+    writePregunta(fichero, "El tiempo estaba adecuado para los temas?");
+
+    readPreguntas(fichero);
+    */
+    /*
+    insertar("Que tal la atención?", 22, 1, 30, 25, 24, 21, 1);
+    insertar("Que le ha aparecido la materia estudiado?", 41, 2, 40, 30, 22, 8, 1);
+    insertar("Te ha gustado el curso?", 41, 3, 40, 30, 22, 8, 1);
+    insertar("Has aprendido lo esperado?", 41, 4, 40, 30, 22, 8, 1);
+    eliminar(3);
+    
+    printf("****** PRINT LIST *******\n");
+    printList();
+    */
+
+
+
+    return EXIT_SUCCESS;
+}
+
+
+
+
+/*
+Al seleccionar la opción de “Iniciar encuesta” el procedimiento será:
+
+    1. Cargar la encuesta en una lista enlazada, cada pregunta será un nodo de la lista.
+
+    2. Preguntar al usuario por el número de preguntas que formaran la encuesta definitiva que haremos al usuario.
+
+    3. Cargar una nueva lista seleccionando de la lista anterior de modo aleatorio el número de preguntas (nodos) indicado en el apartado anterior.
+
+    4. Preguntar al usuario el número de veces que se debe de repetir la encuesta.
+
+    5. Ejecutar la encuesta tantas veces como se haya indicado almacenando los resultados en el lugar adecuado para mostrar posteriormente la estadística.
+
+    6. Una vez finalizada la encuesta mostrar los resultados y cargar el fichero con los mismos.
+
+Al seleccionar la opción de “Agregar preguntas al fichero de preguntas” simplemente se agregaran preguntas al fichero original. A la entrega del trabajo deben existir preguntas almacenadas en la encuesta.´
+Por último, al seleccionar la opción 3, simplemente se mostrará el fichero resultado_encuesta donde aparecerán las preguntas y las estadísticas de la última encuesta realizada.
+*/
+
+
+
+/* Añade una pregunta nueva al archivo de texto de preguntas */
+void writePregunta(char nombre_fichero[24], char pregunta[length_pregunta]){
+    FILE *fichero = fopen(nombre_fichero, "a");
+    if(!fichero){
+        printf( "\tProblemas al abrir el fichero!\n"
+                "\tEl problema puede tener varios motivos.\n"
+                "\tComprueban sus derechos de escribir en la carpeta!\n" );
+    }
+    fputs(pregunta, fichero);
+    fputs("\n", fichero);
+    if(!fclose(fichero)){
+        printf( "\n\tPregunta añadido correctamente!\n" );
+    } else {
+        printf( "\n\tError en añadir pregunta al fichero\n");
+    }
+}
+
+
+/* Lee el archivo de texto que incluye las preguntas*/
+void readPreguntas(char nombre_fichero[24]){
+    char pregunta[length_pregunta];
+    int len;
+    int nr = 1;
+    FILE *fichero = fopen(nombre_fichero, "r");
+    if(fichero == NULL){
+        printf( "\tProblemas al leer el fichero!\n");
+        exit(1);
+    }
+    while(fgets(pregunta, sizeof(pregunta), fichero) != NULL){
+        char *p = strchr(pregunta, '\n');  // encuenta '\n' al final de la pregunta 
+        if (p != NULL) *p = '\0';          // elimina '\n'
+        len = strlen(pregunta);
+        insertar(pregunta, len, nr, 0, 0, 0, 0, 1);
+        nr++;
+    } 
+    fclose(fichero);
+}
+
+
+
+
+
 void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB, int rC, int rD, int iter){
     Pregunta *new = malloc(sizeof(Pregunta));
     if(new == NULL){
@@ -94,7 +264,6 @@ void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB
         pNodo = new;
         lista = new;
     } else  {                      //Añade un elemento a la lista si ya contiene mínimo un Elemento.
-    
         lista = pNodo;
         while(lista!=NULL){
             if(lista->next == NULL){
@@ -109,8 +278,6 @@ void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB
 }
 
 
-
-/* Retira un elemento de la pila */
 void eliminar(int nr_pregunta){
     bool numero_existe = False;
     lista = pNodo;  // la lista ponemos al prinicipio para luego recorrerla
@@ -138,47 +305,3 @@ void eliminar(int nr_pregunta){
                 "\tLa pregunta con el número '%d' no existe!\n", nr_pregunta);
     }
 }
-
-
-
-void printList(){
-    lista = pNodo;
-    while(lista!=NULL){
-        printf("%s\n", lista->texto);
-        lista = lista->next;
-    }
-}
-
-
-int main(){
-    insertar("Que tal la atención?", 22, 1, 30, 25, 24, 21, 1);
-    insertar("Que le ha aparecido la materia estudiado?", 41, 2, 40, 30, 22, 8, 1);
-    insertar("Te ha gustado el curso?", 41, 3, 40, 30, 22, 8, 1);
-    insertar("Has aprendido lo esperado?", 41, 4, 40, 30, 22, 8, 1);
-    eliminar(3);
-    printList();
-
-    return EXIT_SUCCESS;
-}
-
-
-
-
-/*
-Al seleccionar la opción de “Iniciar encuesta” el procedimiento será:
-
-    1. Cargar la encuesta en una lista enlazada, cada pregunta será un nodo de la lista.
-
-    2. Preguntar al usuario por el número de preguntas que formaran la encuesta definitiva que haremos al usuario.
-
-    3. Cargar una nueva lista seleccionando de la lista anterior de modo aleatorio el número de preguntas (nodos) indicado en el apartado anterior.
-
-    4. Preguntar al usuario el número de veces que se debe de repetir la encuesta.
-
-    5. Ejecutar la encuesta tantas veces como se haya indicado almacenando los resultados en el lugar adecuado para mostrar posteriormente la estadística.
-
-    6. Una vez finalizada la encuesta mostrar los resultados y cargar el fichero con los mismos.
-
-Al seleccionar la opción de “Agregar preguntas al fichero de preguntas” simplemente se agregaran preguntas al fichero original. A la entrega del trabajo deben existir preguntas almacenadas en la encuesta.´
-Por último, al seleccionar la opción 3, simplemente se mostrará el fichero resultado_encuesta donde aparecerán las preguntas y las estadísticas de la última encuesta realizada.
-*/
