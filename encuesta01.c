@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define length_pregunta 100
+#define MAX 24
 
 
 typedef enum{False, True} bool;     //Definición de un tipo de dato bool para mejorar la legibilidad del código.
@@ -40,10 +41,10 @@ Pregunta *lista = NULL;              //lista
 
 
 char menu(){
-     char c;
+    char c[MAX];  //proponer mas elementos para evitar errores de introducción
 
     printf("\n*********************************************************\n");
-    printf("******************  Encuesta - Menu  ********************\n\n");
+    printf("*************  Encuesta - menú principal  ***************\n\n");
     printf("(1) Iniciar encusta\n");
     printf("(2) Agregar preguntas al fichero de preguntas\n");
     printf("(3) Visualizar el fichero con los últimos resultados\n");
@@ -51,11 +52,37 @@ char menu(){
     printf("\n\tElige un número [1-4]: ");
     do{
         fflush(stdin);
-        c = getchar();
-    }while(c<'0'||c>'4');
+        fgets(c, MAX, stdin);    //uso de fgets para evitar overflow
+        if((c[0]<'0'||c[0]>'4')){
+            printf("\n\tERROR al introduzir número!\n"
+                    "\tPor favor, eliga un número de 1 a 4: ");
+        }
+    }while(c[0]<'0'||c[0]>'4');
     printf("\n\n");
-    return c;
+    return c[0];
 }
+
+
+char submenu(){
+    char c[MAX];  //proponer mas elementos para evitar errores de introducción
+    printf("*********************   Submenú  ************************\n\n");
+    printf("(1) Imprimir Preguntas\n");
+    printf("(2) Agregar preguntas\n");
+    printf("(3) Eliminar preguntas\n");
+    printf("(4) Salir del submenú\n");
+    printf("\n\tElige un número [1-4]: ");
+    do{
+        fflush(stdin);
+        fgets(c, MAX, stdin);    //uso de fgets para evitar overflow
+        if((c[0]<'0'||c[0]>'4')){
+            printf("\n\tERROR al introduzir número!\n"
+                    "\tPor favor, eliga un número de 1 a 4: ");
+        }
+    }while(c[0]<'0'||c[0]>'4');
+    printf("\n\n");
+    return c[0];
+}
+
 
 
 
@@ -78,10 +105,58 @@ void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB
 void eliminar(int nr_pregunta);
 
 
-
-void agregarPreguntas(){
-    printf("*** Aquí puedes añadir nuevas preguntas a la encuesta! ***");
-
+/* agregar , print e ileminar preguntas de la lista. Mantiene un submemú para realizarlo */
+void agregarPreguntas(char *fichero){
+    bool loop = True; //Valor para determinar el loop.
+    while(loop==True){
+        switch(submenu()){
+            case '1':
+                    FILE *fichero = fopen(fichero, "r");
+                    if(!fichero){
+                        printf( "\tProblemas al abrir el fichero!\n"
+                                "\tEl problema puede tener varios motivos.\n"
+                                "\tComprueban sus derechos de escribir en la carpeta!\n" );
+                    }   
+                    int size = ftell(fichero);
+                    if(size != 0){
+                        readPreguntas(fichero);
+                    }
+                    fclose(fichero);
+                    printPreguntas(); 
+                    break;
+            case '2':
+                    printf("\n*********************************************\n"
+                            "***********   Agregar preguntas  ************\n"
+                            "*********************************************\n");
+                    char question[length_pregunta] = "";                  //Inizialisación de la variable 'question'
+                    while(question[0] != 'Q'){                            //Tecla 'Q' termina el bucle
+                        printf("Introduzca una pregunta [\'Q\'-Quit]:\n");
+                        fgets(question, length_pregunta, stdin);
+                        char *p = strchr(question, '\n');              // encuentra '\n' al final de la pregunta y lo elimina
+                        if (p != NULL){
+                             *p = '\0';                      
+                        }
+                        if(question[0] !='Q'){               // evita para no añadir la letra 'Q' a la lista como pregunta
+                            writePregunta(fichero, question);
+                        }
+                    }
+                    readPreguntas(fichero);                             //Todas las preguntas del fichero se añaden a la lista enlazada
+                    break;
+            case '3':
+                    printf("Eliminar preguntas\n");
+                    break;
+            case '4':
+                    loop = False;
+                    break;
+            default:
+                    printf("\n*********************************************\n"
+                            "\tINPUT VALUE ERROR!\n"
+                            "Elige un numero del menú de 1 a 5 por favor.\n"
+                            "*********************************************\n");
+                    break;
+            
+        }
+    }
 }
 
 
@@ -93,15 +168,13 @@ void printPreguntas(){
         printf("****************** Lista de Preguntas  ********************\n\n");
         printf("   No hay preguntas añadidas a la lista aún!\n");
         printf("\n*********************************************************\n");
-    }
-    else
-    {
-    printf("****************** Lista de Preguntas  ********************\n\n");
-    while(lista!=NULL){
-        printf("\t%d. %s\n", lista->numPregunta, lista->texto);
-        lista = lista->next;
-    }
-    printf("\n*********************************************************\n");
+    } else {
+        printf("****************** Lista de Preguntas  ********************\n\n");
+        while(lista!=NULL){
+            printf("\t%d. %s\n", lista->numPregunta, lista->texto);
+            lista = lista->next;
+        }
+        printf("\n*********************************************************\n");
     }
 }
 
@@ -126,19 +199,14 @@ int main(){
                     printf("*** Iniciar Encuesta ***\n"); 
                     break;
             case '2':
-                    printf("Agreegar preguntas\n");
-                    printf("*** Todas las preguntas añadidas ***\n");
-                    printPreguntas();
-                    char question[length_pregunta];
-                    fgets(question, length_pregunta, stdin);
-                    writePregunta(fichero, question);
+                    agregarPreguntas(fichero);
                     break;
             case '3':
                     printf("Fichero con resultados de las STATS\n");
                     break;
             case '4':
                     printf("\n*********************************************************\n"
-                            "\t\t\tFIN DEL PROGRAMA\n"
+                            "\t\tFIN DEL PROGRAMA\n"
                             "*********************************************************\n");
                     loop = False;
                     break;
