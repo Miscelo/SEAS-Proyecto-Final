@@ -1,70 +1,64 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <limits.h>
+#include <errno.h>
 
-#define length_pregunta 100
+int main( void )
+{
+    char buffer[1024], *p;
+    long num_long;
+    int  num_int;
 
+    //prompt user for input
+    printf( "Enter a number: " );
 
-typedef enum{False, True} bool; 
+    //get one line of input from input stream
+    if ( fgets( buffer, sizeof buffer, stdin ) == NULL )
+    {
+        fprintf( stderr, "Unrecoverable error reading from input!\n" );
+        exit( EXIT_FAILURE );
+    }
 
+    //make sure that entire line was read in (i.e. that
+    //the buffer was not too small)
+    if ( strchr( buffer, '\n' ) == NULL )
+    {
+        printf( "Line input was too long!\n" );
+        exit( EXIT_FAILURE );
+    }
 
-char menu(){
-     char c[length_pregunta];
+    //attempt to convert string to number
+    errno = 0;
+    num_long = strtol( buffer, &p, 10 );
+    if ( p == buffer )
+    {
+        printf( "Error converting string to number\n" );
+        exit( EXIT_FAILURE );
+    }
 
-    printf("\n*********************************************************\n");
-    printf("******************  Encuesta - Menu  ********************\n\n");
-    printf("(1) Iniciar encusta\n");
-    printf("(2) Agregar preguntas al fichero de preguntas\n");
-    printf("(3) Visualizar el fichero con los últimos resultados\n");
-    printf("(4) Salir\n");
-    printf("\n\tElige un número [1-4]: ");
-    do{
-        fflush(stdin);
-        fgets(c, length_pregunta, stdin);
-    }while(c[0]<'0'||c[0]>'4');
-    printf("\n\n");
-    return c[0];
-}
+    //make sure that no range error occurred
+    if ( errno == ERANGE || num_long < INT_MIN || num_long > INT_MAX )
+    {
+        printf( "Range error!\n" );
+        exit( EXIT_FAILURE );
+    }
 
+    //range is ok, so we can convert to int
+    num_int = (int)num_long;
 
-int main(){
-    bool loop = True; //Valor para determinar el loop.
-    while(loop==True){
-        switch(menu()){
-            case '1':
-                    printf("*** Iniciar Encuesta ***\n");
-                    char name[30];
-                    fgets(name, 30, stdin);
-                    printf("%s\n", name); 
-                    break;
-            case '2':
-                    printf("Agreegar preguntas\n");
-                    
-                    break;
-            case '3':
-                    printf("Fichero con resultados de las STATS\n");
-                    break;
-            case '4':
-                    printf("\n*********************************************************\n"
-                            "\t\t\tFIN DEL PROGRAMA\n"
-                            "*********************************************************\n");
-                    loop = False;
-                    break;
-            default:
-                    printf("\n*********************************************\n"
-                            "\tINPUT VALUE ERROR!\n"
-                            "Elige un numero del menú de 1 a 5 por favor.\n"
-                            "*********************************************\n");
-                    break;
-            
+    //make sure that remainder of line contains only whitespace,
+    //so that input such as "6sdfh4q" gets rejected
+    for ( ; *p != '\0'; p++ )
+    {
+        if ( !isspace( (unsigned char)*p ) )
+        {
+            printf( "Unexpected input encountered!\n" );
+            exit( EXIT_FAILURE );
         }
     }
-    
 
-
-
-
-
-
-    return 0;
+    //number was successfully converted, so we print it
+    printf( "You entered the following valid number: %d\n", num_int );
 }
