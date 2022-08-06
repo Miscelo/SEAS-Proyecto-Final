@@ -1,3 +1,6 @@
+/*Programa: <Trabajo Obligatorio ESTRUCTURA DE DATOS>
+Autor: <Michael Schossow> Fecha: <15.08.2022> */
+
 /****************************** Trabajo obligatorio - CURSO Programación C - SEAS **************************************
 *  Ejercicio: Crear un programa que elige preguntas aleatoriamente de un fichero y lo seleccióna *
 *             para hacer una encuensta. 
@@ -7,15 +10,12 @@
 *             - Estadisticas de la encuesta y que el resultado ganador se guarda en otro fichero.
 ************************************************************************************************************************
 */  
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define length_pregunta 100
 #define MAX 24
-#define length_filename 12
-
 
 typedef enum{False, True} bool;     //Definición de un tipo de dato bool para mejorar la legibilidad del código.
 
@@ -31,115 +31,48 @@ typedef struct _Pregunta_ {         //Definición de la estructura del tipo 'Non
     struct _Pregunta_ *next;
 } Pregunta;
 
-
 /* Variables globales */
 Pregunta *pNodo = NULL;             //instancia de la estructura, puntero al primer elemento de la lista
 Pregunta *lista = NULL;              //lista
 
 
 
+/* Imprime el menu principal. Devuelve un 'char' que sea usado para un caso 'switch'*/ 
+char mainmenu();
 
-
-
-char menu();
-
+/* Imprime el menu secundario (Añadir, eliminar o ver pretuntas), devuele un 'char' para un caso switch */
 char submenu();
 
-/* Añade una pregunta nueva al archivo de texto de preguntas */
-void writePregunta(const char nombre_fichero[length_filename], char pregunta[length_pregunta]);
+/* Función que pide al usuario que introduzca un número que se devuelve */
+int getIntegerFromUser();
 
-/* Lee el fichero 'fichero.txt' completo y cada linea (pregunta) del fichero se añade a la lista como un elemento. */
-void copyToList(const char nombre_fichero[length_filename]);
-
-
-/*----------  ???? --------------- */
-void writeStatistics(){
-
-}
-
-
-/* Añade un elemento en la pila */
+/* Función inserta valores dados a la lista enlazada */
 void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB, int rC, int rD, int iter);
 
-/* Retira un elemento de la pila */
+/* Retira un elemento de la lista elegido por la variable 'Pregunta numPregunta'*/
+/* En caso de falta de ortografía, el usuario puede eliminar la pregunta erronea. */
 void eliminar(int nr_pregunta);
 
+/*renumerar todas las preguntas de 1 hasta el final de la lista - Struct variable numPregunta*/
+void renumerateQuestions();
 
-/* agregar , print e ileminar preguntas de la lista. Mantiene un submemú para realizarlo */
-void agregarPreguntas(const char fichero[length_filename]);
+//copia todas las lineas del fichero a la lista enlazada si no es vacio.
+void copyFileToList(const char *nombre_fichero);
 
+/* copia todos los elementos de la variable 'Pregunta texto' al fichero */
+void copyListToFile(const char *nombre_fichero);
 
-/* */
-int numeroParaEliminar(){
-    char buffer[1024];
-    char *p;
-    long numero_long;
-    int  numero_int;
-    printf("Nr de la pregunta que desea eliminiar: ");
-    fgets(buffer, sizeof buffer, stdin);              //guarda una linea de flujo de dato
-        if(strchr(buffer, '\n') == NULL){               //Comprueba que toda la linea està leida y el 'buffer' no se ha quedado pequeño
-            printf("ERROR! El numero introducido es demasiado largo!\n");
-            exit(EXIT_FAILURE);
-        }
-        numero_long = strtol(buffer, &p, 10);    // cambiar una cadena a un número entero del tipo 'long'
-        if(p == buffer){
-            printf("ERROR, error en introducir el número!\n");
-            exit(EXIT_FAILURE);
-        }
-        numero_int = (int)numero_long;       //cambiar número entero del tipo long a número entero
-        /*Comprobamos cuantos elementos hay en la lista*/
-        int counter;
-        lista = pNodo;                //poner lista al principio
-        while(lista!=NULL){           //recorrer lista hasta el final
-            counter++;
-            lista= lista->next;
-        }
-        if(numero_int>=0 && numero_int<=counter){
-            return numero_int;
-        }else{
-            printf("Número no existe en la lista!");
-            return 0;
-        } 
-}
+/*Función imprime la lista enlazada (Preguntas que han sido anteriormente añadido al archivo 'fichero.txt' */
+void printQuestions();
+
+/*Función devuelve cantidad de elementos que hay en la lista enlazada*/
+int listSize();
+
+/* agregar y eleminar preguntas a la lista e emprime la lista.  Mantiene un submemú 'submenu()' para realizarlo */
+void treatQuestions(const char *nombre_fichero);
 
 
 
-void copyListToFile(const char nombre_fichero[length_filename]){
-    FILE *fichero = fopen(nombre_fichero, "r");
-    if(fichero == NULL){
-        printf( "\tProblemas al leer el fichero!\n");
-        exit(1);
-    }
-    
-    // copiar elemento de la lista en cada linea
-
-
-    fclose(fichero);
-}
-
-
-
-
-/*Función imprime la lista (Preguntas que han sido anteriormente añadido al archivo 'fichero.txt' */
-void printPreguntas();
-
-
-/* Función devuelve '0' si el fichero es vacio, sino devuelve '1'         ???????   Funcion necesario ????? */
-int checkFileIsEmpty(const char nombre_fichero[length_filename]){
-    FILE *fichero = fopen(nombre_fichero, "a+");
-    if(fichero == NULL){
-        printf( "\tProblemas al leer el fichero!\n");
-    }
-    /*Cambiamos la posicón al final del fichero. Si luego, la posicón da 0, no hay datos en el fichero */
-    fseek(fichero, 0, SEEK_END);   //cambia la posición en el fichero al final
-    if(ftell(fichero) == 0){       //función devuelve la posición actual
-        return 0;                  
-    } else{
-        return 1;
-    }
-    fclose(fichero);
-
-}
 
 
 void printList(){
@@ -151,22 +84,27 @@ void printList(){
 }
 
 
-int main(){
-    const char fichero[length_filename]="fichero.txt";
 
+/*******************************************************************************/
+/**********************           main - function          *********************/
+/*******************************************************************************/
+int main(){
+    const char *fichero = "fichero.txt";
+    copyFileToList(fichero);              //Actualiza la lista enlazada con datos en fichero si existen
+    
     bool loop = True; //Valor para determinar el loop.
     while(loop==True){
-        switch(menu()){
-            case '1':
+        switch(mainmenu()){
+            case 1:
                     printf("*** Iniciar Encuesta ***\n"); 
                     break;
-            case '2':
-                    agregarPreguntas(fichero);
+            case 2:
+                    treatQuestions(fichero);
                     break;
-            case '3':
+            case 3:
                     printf("Fichero con resultados de las STATS\n");
                     break;
-            case '4':
+            case 4:
                     printf("\n*********************************************************\n"
                             "*******************  FIN DEL PROGRAMA  ******************\n"
                             "*********************************************************\n");
@@ -175,44 +113,21 @@ int main(){
             default:
                     printf("\n*********************************************\n"
                             "\tINPUT VALUE ERROR!\n"
-                            "Elige un numero del menú de 1 a 5 por favor.\n"
+                            "Elige un numero del menú de 1 a 4 por favor.\n"
                             "*********************************************\n");
-                    break;
-            
+                    break;   
         }
     }
 
-    /*
-    insertar("Que tal la atención?", 22, 1, 30, 25, 24, 21, 1);
-    */
     return EXIT_SUCCESS;
 }
 
 
 
 
-/*
-Al seleccionar la opción de “Iniciar encuesta” el procedimiento será:
 
-    1. Cargar la encuesta en una lista enlazada, cada pregunta será un nodo de la lista.
-
-    2. Preguntar al usuario por el número de preguntas que formaran la encuesta definitiva que haremos al usuario.
-
-    3. Cargar una nueva lista seleccionando de la lista anterior de modo aleatorio el número de preguntas (nodos) indicado en el apartado anterior.
-
-    4. Preguntar al usuario el número de veces que se debe de repetir la encuesta.
-
-    5. Ejecutar la encuesta tantas veces como se haya indicado almacenando los resultados en el lugar adecuado para mostrar posteriormente la estadística.
-
-    6. Una vez finalizada la encuesta mostrar los resultados y cargar el fichero con los mismos.
-
-Al seleccionar la opción de “Agregar preguntas al fichero de preguntas” simplemente se agregaran preguntas al fichero original. A la entrega del trabajo deben existir preguntas almacenadas en la encuesta.´
-Por último, al seleccionar la opción 3, simplemente se mostrará el fichero resultado_encuesta donde aparecerán las preguntas y las estadísticas de la última encuesta realizada.
-*/
-
-
-char menu(){
-    char c[MAX];  //proponer mas elementos para evitar errores de introducción
+char mainmenu(){
+    int num;      
     printf("\n*********************************************************\n");
     printf("*************  Encuesta - menú principal  ***************\n\n");
     printf("(1) Iniciar encusta\n");
@@ -221,169 +136,70 @@ char menu(){
     printf("(4) Salir\n");
     printf("\n\tElige un número [1-4]: ");
     do{
-        fflush(stdin);
-        fgets(c, MAX, stdin);    //uso de fgets para evitar overflow
-        if((c[0]<'0'||c[0]>'4')){
+        num = getIntegerFromUser();  
+        if(num<0 || num >4){           //limitar de número 1 a 4
             printf("\n\tERROR al introduzir número!\n"
                     "\tPor favor, eliga un número de 1 a 4: ");
         }
-    }while(c[0]<'0'||c[0]>'4');
+    }while(num < 0 || num > 4);
     printf("\n\n");
-    return c[0];
+    return num;
 }
 
 
+
 char submenu(){
-    char c[MAX];  //proponer mas elementos para evitar errores de introducción
-    printf("\t*******  Submenú  *******\n\n");
+    int num;
+    printf("\n\t********  Submenú  ********\n\n");
     printf("\t(1) Agregar preguntas\n");
     printf("\t(2) Eliminar preguntas\n");
     printf("\t(3) Imprimir Preguntas\n");
     printf("\t(4) Volver al menú principal\n");
     printf("\n\tElige un número [1-4]: ");
     do{
-        fflush(stdin);
-        fgets(c, MAX, stdin);    //uso de fgets para evitar overflow
-        if((c[0]<'0'||c[0]>'4')){
+        num = getIntegerFromUser();
+        if(num<0 || num >4){
             printf("\n\tERROR al introduzir número!\n"
                     "\tPor favor, eliga un número de 1 a 4: ");
         }
-    }while(c[0]<'0'||c[0]>'4');
+    }while(num < 0 || num > 4);
     printf("\n\n");
-    return c[0];
+    return num;
 }
 
 
 
-/* agregar , print e ileminar preguntas de la lista. Mantiene un submemú para realizarlo */
-void agregarPreguntas(const char fichero[length_filename]){
-    bool loop = True; //Valor para determinar el loop.
-    while(loop==True){
-        switch(submenu()){
-            case '1':
-                    printf("\n*********************************************\n"
-                            "***********   Agregar preguntas  ************\n\n");
-                    char question[length_pregunta] = "";                  //Inizialisación de la variable 'question'
-                    while(question[0] != 'Q'){                            //Tecla 'Q' termina el bucle
-                        printf("Introduzca una pregunta [\'Q\'-Quit]:\n");
-                        fgets(question, length_pregunta, stdin);
-                        char *p = strchr(question, '\n');              // encuentra '\n' al final de la pregunta y lo elimina
-                        if (p != NULL){
-                             *p = '\0';                      
-                        }
-                        if(question[0] !='Q'){               // evita para no añadir la letra 'Q' a la lista como pregunta
-                            writePregunta(fichero, question);
-                        }
-                    }
-                    copyToList(fichero);                             //Todas las preguntas del fichero se añaden a la lista enlazada
-                    break;
-            case '2':
-                    printf("\n*********************************************\n"
-                            "***********   Eliminar preguntas  ***********\n\n");
-
-                    printf("\tInformación: Antes de eliminar una pregunta\n"
-                            "\ttiene que añadir una pregunta anteriormente!\n\n");
-                    int numero_int;
-                    numero_int = numeroParaEliminar();   //El usuario elige un número de la lista para eliminar
-                    eliminar(numero_int);
-                    if(remove(fichero) != 0){    // Eliminar fichero
-                            printf("ERROR en guardar el cambio!\n");
-                    }
-
-
-
-                    
-                    break;
-            case '3':
-                    printPreguntas(); 
-                    break;
-            case '4':
-                    loop = False;
-                    break;
-            default:
-                    printf("\n*********************************************\n"
-                            "\tINPUT VALUE ERROR!\n"
-                            "Elige un numero del menú de 1 a 5 por favor.\n"
-                            "*********************************************\n");
-                    break;
-            
-        }
+/* Función que pide al usuario que introduzca un número que se devuelve */
+int getIntegerFromUser(){
+    char buffer[1024];
+    char *p;
+    long numero_long;
+    int  numero_int;
+    //Uso de fgets para evitar overflow
+    fflush(stdin);
+    fgets(buffer, sizeof buffer, stdin);          //guarda una linea de flujo de dato
+    if(strchr(buffer, '\n') == NULL){             //Comprueba que toda la linea està leida y el 'buffer' no se ha quedado pequeño
+        printf("ERROR! El numero introducido es demasiado largo!\n");
+        exit(EXIT_FAILURE);
     }
+    numero_long = strtol(buffer, &p, 10);    // cambiar una cadena a un número entero del tipo 'long'
+    if(p == buffer){
+        printf("\n\tERROR, no es un número!\n"
+                "\tIntroduzca un número: ");
+        getIntegerFromUser();   //Funcion se llama recursivo si la entrada no era un número
+    }
+    numero_int = (int)numero_long;       //cambiar número entero del tipo long a número entero
+    return numero_int;
 }
 
 
 
-/*Función imprime la lista (Preguntas que han sido anteriormente añadido al archivo 'fichero.txt' */
-void printPreguntas(){
-    lista = pNodo;
-    if(pNodo == NULL){
-        printf("****************** Lista de Preguntas  ********************\n\n");
-        printf("\tNo hay preguntas añadidas a la lista aún!\n");
-        printf("\t¡Ojo! Puede haber datos guardados desde\n"
-               "\tla última sessión. Para comprobarlo, agrega\n"
-                "\tuna pregunta nueva y vuelva a imprimir.\n");
-        printf("\n***********************************************************\n\n");
-    } else {
-        printf("****************** Lista de Preguntas  ********************\n\n");
-        while(lista!=NULL){
-            printf("\t%d. %s\n", lista->numPregunta, lista->texto);
-            lista = lista->next;
-        }
-        printf("\n*********************************************************\n");
-    }
-}
-
-
-
-
-
-
-/* Añade una pregunta nueva al archivo de texto de preguntas */
-void writePregunta(const char nombre_fichero[length_filename], char pregunta[length_pregunta]){
-    FILE *fichero = fopen(nombre_fichero, "a");
-    if(!fichero){
-        printf( "\tProblemas al abrir el fichero!\n"
-                "\tEl problema puede tener varios motivos.\n"
-                "\tComprueban sus derechos de escribir en la carpeta!\n" );
-    }
-    fputs(pregunta, fichero);
-    fputs("\n", fichero);
-    if(!fclose(fichero)){
-        printf( "\n\tPregunta añadido correctamente!\n" );
-    } else {
-        printf( "\n\tError en añadir pregunta al fichero\n");
-    }
-}
-
-
-/* Lee el archivo de texto que incluye las preguntas y lo inserta en la lista enlazada*/
-void copyToList(const char nombre_fichero[length_filename]){
-    char pregunta[length_pregunta];
-    int len;
-    int nr = 1;
-    FILE *fichero = fopen(nombre_fichero, "r");
-    if(fichero == NULL){
-        printf( "\tProblemas al leer el fichero!\n");
-        exit(1);
-    }
-    while(fgets(pregunta, sizeof(pregunta), fichero) != NULL){
-        char *p = strchr(pregunta, '\n');  // encuenta '\n' al final de la pregunta 
-        if (p != NULL) *p = '\0';          // elimina '\n'
-        len = strlen(pregunta);
-        insertar(pregunta, len, nr, 0, 0, 0, 0, 1);
-        nr++;
-    } 
-    fclose(fichero);
-}
-
-
-
-
-
+/*Inserta un elemento nuevo al final de la lista enlazada.*/
 void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB, int rC, int rD, int iter){
     Pregunta *new = malloc(sizeof(Pregunta));
     if(new == NULL){
         printf("ERROR, no se podía asignar espacio en la memoría RAM!\n");
+        exit(EXIT_FAILURE);
     }
     strcpy(new->texto, pregunta);
     new->next = NULL;
@@ -410,17 +226,19 @@ void insertar(char pregunta[length_pregunta], int letras, int nr, int rA, int rB
         }
 
     }
+    renumerateQuestions();   //renumera la variable 'numPregunta' de 1 hasta final.
 }
 
 
+
+
+/* Retira un elemento de la lista elegido por la variable 'Pregunta numPregunta'*/
 void eliminar(int nr_pregunta){
-    bool numero_existe = False;
     lista = pNodo;  // la lista ponemos al prinicipio para luego recorrerla
     //Primero buscamos el elemento anterior para cambiar la referencia de *next
     Pregunta * anterior = NULL;
     while(lista!=NULL){
         if(lista->numPregunta == nr_pregunta){
-            numero_existe = True;
             if(anterior==NULL){    //El caso de que el usuario quiere eleminar el primer elemento de la lista.
                 pNodo = NULL;
                 free(pNodo);
@@ -435,17 +253,172 @@ void eliminar(int nr_pregunta){
         anterior = lista;
         lista = lista->next;
     }
-    /*renumerar todas las preguntas de 1 hasta el final de la lista*/
+    renumerateQuestions();   //renumera la variable 'numPregunta' de 1 hasta final.
+}
+
+
+
+
+/*renumera las preguntas de 1 hasta el final de la lista - Struct variable numPregunta*/
+void renumerateQuestions(){
     int counter = 1;
-    lista = pNodo;
-    while(lista!=NULL){
-        lista->numPregunta = counter;
+    lista = pNodo;       // lista al principio
+    while(lista!=NULL){    //recorre lista hasta el final
+        lista->numPregunta = counter;         //asignamos la entrada de la lista numPregunta
         counter++;
         lista = lista->next;
     }
+}
 
-    if(numero_existe == False){
-        printf("\tError borrar pregunta!\n" 
-                "\tLa pregunta con el número '%d' no existe!\n", nr_pregunta);
+
+
+//copia todas las lineas del fichero a la lista enlazada si no es vacio.
+void copyFileToList(const char *nombre_fichero){
+    char linia[length_pregunta];
+    int linelenght;           //variable para el tamaño (longitud) de la pregunta
+    int nr_pregunta = 1;     //Inicializamos los números con 1
+    FILE *fichero = fopen(nombre_fichero, "a+");    // a+ en vez de 'r' por si el archivo no existe aún
+    if(fichero == NULL){
+        printf( "\tProblemas al leer el fichero!\n");
+        exit(1);
+    }
+    //Comprobamos si el fichero contiene datos
+    fseek(fichero, 0, SEEK_END);            //cambia la posición en el fichero al final
+    if(ftell(fichero) != 0){                //función devuelve la posición actual
+        fseek(fichero, 0, SEEK_SET);        //cambia de vuelta al principio del fichero
+        while(fgets(linia, sizeof(linia), fichero) != NULL){     //lee linea por linea del fichero con fgets
+            char *p = strchr(linia, '\n');  // encuenta '\n' al final de la pregunta 
+            if (p != NULL) *p = '\0';       // elimina '\n'
+            linelenght = strlen(linia);     //Tamaño de la pregunta
+            insertar(linia, linelenght, nr_pregunta, 0, 0, 0, 0, 1);
+            nr_pregunta++;                  //incrementa el número de las preguntas
+        }
+    } 
+    fclose(fichero);
+    renumerateQuestions();   //renumera la variable 'numPregunta' de 1 hasta final por si estan mal numerados anteriormente
+}
+
+
+
+/* copia todos los elementos de la variable 'Pregunta texto' al fichero */
+void copyListToFile(const char *nombre_fichero){
+        char pregunta[length_pregunta];    
+        //Abrimos el fichero con 'w' para cambiarlo a la longitud '0'.
+        FILE *fichero = fopen(nombre_fichero, "w");
+        if(!fichero){
+            printf( "\tProblemas al abrir el fichero!\n"
+                    "\tEl problema puede tener varios motivos.\n"
+                    "\tComprueban sus derechos de escribir en la carpeta!\n" );
+        }
+        renumerateQuestions();   //renumera la variable 'numPregunta' de 1 hasta final por si estan mal numerados anteriormente
+        lista = pNodo;           //lista al elemento principal
+        while(lista!=NULL){       //recorrer la lista
+            strcpy(pregunta, lista->texto);  //copiamos el contenido de la variable 'texto' a la pregunta
+            fputs(pregunta, fichero);  //Añade la pregunta al fichero
+            fputs("\n", fichero);      //Añade 'salto linea' a la pregunta    
+            lista = lista->next;
+        }
+        fclose(fichero);
+}    
+
+
+
+
+
+/*Función imprime la lista (Preguntas que han sido anteriormente añadido al archivo 'fichero.txt' */
+void printQuestions(){
+    printf("****************** Lista de Preguntas  ********************\n\n");
+    lista = pNodo;                 //mueve lista al primer elemento
+    if(pNodo == NULL){                
+        printf("\tNo hay preguntas añadidas a la lista aún!\n"
+                "\tElige número 1 en el menú para añadir preguntas.\n");
+        printf("\n***********************************************************\n");
+    } else {
+        while(lista!=NULL){
+            printf("\t%d. %s\n", lista->numPregunta, lista->texto);
+            lista = lista->next;
+        }
+        printf("\n***********************************************************\n\n");
+    }
+}
+
+
+
+/*Función devuelve cantidad de elementos que hay en la lista enlazada*/
+int listSize(){
+    int counter;
+    lista = pNodo;                //poner lista al principio
+    while(lista!=NULL){           //recorrer lista hasta el final
+        counter++;
+        lista= lista->next;
+    }
+    return counter;
+}
+
+
+
+
+/* agregar , print e ileminar preguntas de la lista. Mantiene un submemú para realizarlo */
+void treatQuestions(const char *nombre_fichero){
+    bool loop = True; //Valor para determinar el loop.
+    while(loop==True){
+        switch(submenu()){
+            case 1:
+                    /* En un bucle se pregunta al usuario si quiere agregar otra pregunta a la encuesta.
+                    El bucle se termina con la tecla 'q'. Se inserta cada pregunta en la lista y al final se 
+                    usa la funcion copyListToFile() para actualizar el fichero.*/ 
+                    printf("\n*********************************************\n"
+                            "***********   Agregar preguntas  ************\n\n");
+                    char question[length_pregunta];       //Inizialisación de la variable 'question'
+                    int len, i;
+                    while(1){
+                        printf("\tIntroduzca una pregunta [quit='q']:\n");
+                        fgets(question, length_pregunta, stdin);
+                        len = strlen(question);    // lo anotamos para luego pasarlo a la función 'insertar()'
+                        for(i = 0;i<MAX; i++){     //fgets adjunta al final un newline '\n' que vamos a quitar con este bucle
+                            if(question[i] == '\n'){
+                                question[i] = '\0';
+                            }
+                        }
+                        if((question[0] == 'q' || question[0] == 'Q') && (len == 2)){  //terminamos el bucle
+                            break;
+                        }
+                        insertar(question, len, 0, 0, 0, 0, 0, 1);       //insertamos cada pregunta en la lista, por defecto valores con 0 y 1.
+                    }
+                    copyListToFile(nombre_fichero);    //pasamos la lista que ha sidoa actualizada al fichero.
+                    break;
+            case 2:
+                    /* Se pide al usuario elegir un número de una pregunta para eliminarlo para luego eliminarlo
+                    en la lista enlazada. El próximo paso, se actualiza el fichero con la lista actúal */
+                    printf("\n*********************************************\n"
+                            "***********   Eliminar preguntas  ***********\n\n");
+                    printQuestions();
+                    printf("Introduzca el número de la pregunta que desa iliminar: ");
+                    int numeroPregunta;
+                    int listsize;
+                    numeroPregunta = getIntegerFromUser();
+                    listsize = listSize();
+                    if(numeroPregunta>=0 && numeroPregunta<=listsize){  //comprueba si el numero introducido está dentro del limite
+                        eliminar(numeroPregunta);
+                        copyListToFile(nombre_fichero);
+                    }else{
+                        printf("\n\tNúmero no existe en la lista!\n");
+                    } 
+                    break;
+            case 3:  
+                    /*Imprime los números de las preguntas con la pregunta correspondiente. */
+                    printQuestions(); 
+                    break;
+            case 4:
+                    loop = False;
+                    break;
+            default:
+                    printf("\n*********************************************\n"
+                            "\tINPUT VALUE ERROR!\n"
+                            "Elige un numero del menú de 1 a 4 por favor.\n"
+                            "*********************************************\n");
+                    break;
+            
+        }
     }
 }
