@@ -14,9 +14,10 @@ Autor: <Michael Schossow> Fecha: <15.08.2022> */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
-#define length_pregunta 100
+#define length_pregunta 160
 #define MAX 24
 
 typedef enum{False, True} bool;     //Definición de un tipo de dato bool para mejorar la legibilidad del código.
@@ -74,11 +75,67 @@ void manejarPreguntas(Lista *lista, const char *nombre_fichero);
 
 
 /* */
-void iniciarEncuesta(Lista *lista){
+void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char *nombre_fichero){
 
     // Checken , ob fragen gespeichert sind.
        // Wenn keine Fragen gespeichert sind, den user auffordern, welche anzulegen. 
-       //Auf das submenu 2 verweisen.
+    //comprueba si hay preguntas en el fichero.txt
+    int sizeOfList = listSize(*lista_preguntas);
+    if(sizeOfList == 0){
+        printf("\n*********************************************************\n");
+        printf("\tAtención: No hay preguntas añadidas!\n"
+                "\tPor favor, vayanse al menú principal y eligan la tecla 2\n"
+                "\t- Agregar preguntas al fichero de preguntas. Gracias\n");
+        printf("\n*********************************************************\n");
+    }
+
+
+    printf("Wie lang soll das Array sein: ");
+    int arraylength = getIntegerFromUser();
+    
+    // MAX 20
+    int *random_array = malloc(sizeof(int)*arraylength);
+    if(random_array == NULL){
+        printf("No hayu space\n");
+        exit(1);
+    }
+    memset(random_array, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
+    srand(clock());
+    for(int i=0;i<arraylength;i++){
+        int temp = rand()%sizeOfList+1;
+        bool exists = False;
+        for(int j=0;j<i;++j){
+            if(*(random_array+j) == temp){
+                exists = True;
+                break;
+            }
+        }
+        if(!exists){
+            *(random_array+i) = temp;
+            printf("%d,", *(random_array+i));
+        }
+        else{
+            --i;  //si ya existe , contamos el bucle una para atras
+        }
+    }
+    printf("\n");
+    //zuordnung array zu nr pregunta de la lista   ???????????????????????????????????
+   
+    for(int k = 0; k<arraylength; k++){
+        pNodo first, previous;
+        first = *lista_preguntas;
+        previous = NULL;
+        while(first){    
+            previous = first;
+            if(previous->numPregunta == *(random_array+k)){
+                int len = strlen(previous->texto);
+                insertar(lista_aleatoria, previous->texto, len, previous->numPregunta, 0, 0, 0, 0, 1);
+            }
+            first = first->next;
+        }
+    }
+    printPreguntas(*lista_aleatoria);
+    
 
     // Fragen, wieviel Fragen die Umfrage haben soll
         // Tsten, das es weniger sind als fragen die gespeichert sind. 
@@ -108,9 +165,6 @@ void iniciarEncuesta(Lista *lista){
 
     //Estadistica ->file : resultado_encuesta. Vielleicht noch ne nummer Iteration davor
     // Iter: Resp. A = 66%, Resp. B = 33%, Resp. C = 0%, Resp. D = 0%
-
-
-
 }
 
 
@@ -121,7 +175,7 @@ void iniciarEncuesta(Lista *lista){
 int main(){
     /* Creamos instancias de Lista */
     Lista lista1 = NULL;           // lista1 contiene todas las preguntas
-    //Lista lista2 = NULL;           // lista2 contiene una seleción aleatoria de preguntas
+    Lista lista2 = NULL;           // lista2 contiene una seleción aleatoria de preguntas
     const char *fichero = "fichero3.txt";           //fichero que guarda todas las preguntas
     copyFileToList(&lista1, fichero);              //Actualiza la lista enlazada con datos en fichero si existen
     
@@ -129,7 +183,7 @@ int main(){
     while(loop==True){
         switch(mainmenu()){
             case 1:
-                    printf("*** Iniciar Encuesta ***\n"); 
+                    iniciarEncuesta(&lista1, &lista2, fichero);
                     break;
             case 2:  
                     manejarPreguntas(&lista1, fichero);
