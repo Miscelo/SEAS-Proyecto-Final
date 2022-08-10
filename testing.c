@@ -35,11 +35,11 @@ int getIntegerFromUser(){
 
 
 
-void dynArray(){
+int *dynArray(){
     int sizeOfList = 20;
     printf("Wie lang soll das Array sein: ");
     int arraylength = getIntegerFromUser();
-    
+    arraylength+=1; //aumentamos 1 para guardar en el primer elemento del array su longitud
     // MAX 20
     int *random_numbers = malloc(sizeof(int)*arraylength);
     if(random_numbers == NULL){
@@ -47,8 +47,11 @@ void dynArray(){
         exit(1);
     }
     memset(random_numbers, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
+
+    *random_numbers = arraylength;
+
     srand(clock());
-    for(int i=0;i<arraylength;i++){
+    for(int i=1;i<arraylength;i++){
         int temp = rand()%sizeOfList+1;
         bool exists = false;
         for(int j=0;j<i;++j){
@@ -65,6 +68,9 @@ void dynArray(){
             --i;  //si ya existe , contamos el bucle una para atras
         }
     }
+
+    return random_numbers;
+
 }
 
 
@@ -73,9 +79,9 @@ void dynArray(){
 
 
 int main(){
+    int *ptr;
+    ptr = dynArray();
     
-    dynArray();
-   
 
     return 0;
 }
