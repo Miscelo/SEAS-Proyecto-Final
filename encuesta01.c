@@ -72,86 +72,67 @@ void copyListToFile(const char *nombre_fichero, Lista *lista);
 /* agregar , print e ileminar preguntas de la lista. Mantiene un submemú para realizarlo */
 void manejarPreguntas(Lista *lista, const char *nombre_fichero);
 
+/*  Primero elige un usuario cuantas preguntas se lleva a la encuesta. Creamos un array dinámico que tiene de primer elemento
+    su longitud que ha definido el usuario anteriormente y despues números aleatorias en un rango de la longitud de la lista.*/
+int *crearArrayDinamico(Lista *lista_preguntas);
+
+/*  Se crea una nueva lista de preguntas. Las preguntas en esta lista han sido seleccionado
+    con el número aleatorio que hemos pasado con el array dinámico a la función.*/
+void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *random_array);
+
+
+
 
 
 /* */
 void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char *nombre_fichero){
-
-    // Checken , ob fragen gespeichert sind.
-       // Wenn keine Fragen gespeichert sind, den user auffordern, welche anzulegen. 
-    //comprueba si hay preguntas en el fichero.txt
+    int *dynArray;
+    int repeticiones;
+    int cantidad_preguntas;
     int sizeOfList = listSize(*lista_preguntas);
-    if(sizeOfList == 0){
+    if(sizeOfList == 0){      
         printf("\n*********************************************************\n");
         printf("\tAtención: No hay preguntas añadidas!\n"
                 "\tPor favor, vayanse al menú principal y eligan la tecla 2\n"
                 "\t- Agregar preguntas al fichero de preguntas. Gracias\n");
         printf("\n*********************************************************\n");
     }
-
-
-    printf("Wie lang soll das Array sein: ");
-    int arraylength = getIntegerFromUser();
     
-    // MAX 20
-    int *random_array = malloc(sizeof(int)*arraylength);
-    if(random_array == NULL){
-        printf("No hayu space\n");
-        exit(1);
-    }
-    memset(random_array, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
-    srand(clock());
-    for(int i=0;i<arraylength;i++){
-        int temp = rand()%sizeOfList+1;
-        bool exists = False;
-        for(int j=0;j<i;++j){
-            if(*(random_array+j) == temp){
-                exists = True;
-                break;
-            }
-        }
-        if(!exists){
-            *(random_array+i) = temp;
-            printf("%d,", *(random_array+i));
-        }
-        else{
-            --i;  //si ya existe , contamos el bucle una para atras
-        }
-    }
-    printf("\n");
-    //zuordnung array zu nr pregunta de la lista   ???????????????????????????????????
-   
-    for(int k = 0; k<arraylength; k++){
-        pNodo first, previous;
-        first = *lista_preguntas;
-        previous = NULL;
-        while(first){    
-            previous = first;
-            if(previous->numPregunta == *(random_array+k)){
-                int len = strlen(previous->texto);
-                insertar(lista_aleatoria, previous->texto, len, previous->numPregunta, 0, 0, 0, 0, 1);
-            }
-            first = first->next;
-        }
-    }
-    printPreguntas(*lista_aleatoria);
-    
-
-    // Fragen, wieviel Fragen die Umfrage haben soll
-        // Tsten, das es weniger sind als fragen die gespeichert sind. 
-
-    // Neue liste erstellen mit Zufallszahlen     int aleartoria()  gib zufällig eine zurück
-    //Vielleicht in eine liste packen, wenn Zahlen doppelt, noch einmal bis array voll ?????
-    // wird wohl recursive
-
-
-    //Benutzer fragen, wie oft er die Umfrage wiederholen möchte
+    dynArray = crearArrayDinamico(lista_preguntas);
+    crearListaAleatoria(lista_preguntas, lista_aleatoria, dynArray);
 
     
+    printf("\n\tCuantos veces se debe repitir\n"
+            "\tla la encuesta?: ");
+    repeticiones = getIntegerFromUser();
 
-    //  Umfrage starten
-    // Usted ha elegido 6 preguntas aleatorias de 42 total. La encuesta se va a realizar x veces.
-        //Estos datos son correctso (Sí/NO)
+    cantidad_preguntas = *dynArray - 1;
+    printf("\n*********************************************************\n");
+    printf("\tLa encuesta contiene %d preguntas\n"
+            "\ty se repitira %d veces!\n", cantidad_preguntas, repeticiones);
+    printf("*********************************************************\n");
+
+
+    printf("\n\t¿Estas seguro que quiere comenzar la encuesta?\n"
+            "\t\t[Si='S'/No='N']: ");
+    char empezarEncuesta[2];
+    bool loop = True;
+    while(loop == True){
+        fgets(empezarEncuesta, 2, stdin);
+        if((empezarEncuesta[0] == 'S' || empezarEncuesta[0] == 's')){  //terminamos el bucle
+            loop = False;                
+        }else if((empezarEncuesta[0] == 'N' || empezarEncuesta[0] == 'n')){  //terminamos el bucle
+            printf("\n*********************************************************\n");
+            printf("\tFin del programa - Hasta la próxima");
+            printf("\n*********************************************************\n");
+            exit(1);    
+        }else{
+            printf("\n\tInputError! Por favor, introduzca S o N\n");
+        }
+    }
+
+    printf("start\n");
+    //  Umfrage starten  encuesta()
     // EStá seguro que Usted quiere empezar la encuesta. (Sí/No)
 
 
@@ -165,6 +146,10 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
 
     //Estadistica ->file : resultado_encuesta. Vielleicht noch ne nummer Iteration davor
     // Iter: Resp. A = 66%, Resp. B = 33%, Resp. C = 0%, Resp. D = 0%
+
+    // imprimir resultado de la encuesta
+
+    // vaciar lista aleatoria
 }
 
 
@@ -353,13 +338,10 @@ int listSize(Lista lista){
 
 /*renumera las preguntas de 1 hasta el final de la lista - Struct variable numPregunta*/
 void renumerarPreguntas(Lista *lista){
-    pNodo first, previous;
-    first = *lista;
-    previous = NULL;
+    pNodo first = *lista;
     int counter = 1;
     while(first){
-        previous = first;
-        previous->numPregunta = counter;
+        first->numPregunta = counter;
         first = first->next;
         counter++;
     }
@@ -369,7 +351,7 @@ void renumerarPreguntas(Lista *lista){
 
 
 void printPreguntas(Lista lista){
-    printf("****************** Lista de Preguntas  ********************\n\n");
+    printf("\n\n****************** Lista de Preguntas  ********************\n\n");
     if(listSize(lista) == 0){                
         printf("\tNo hay preguntas añadidas a la lista aún!\n"
                 "\tElige número 1 en el menú para añadir preguntas.\n");
@@ -406,7 +388,7 @@ void copyFileToList(Lista *lista, const char *nombre_fichero){
             char *p = strchr(texto, '\n');  // encuenta '\n' al final de la pregunta 
             if (p != NULL) *p = '\0';       // elimina '\n'
             tamano = strlen(texto);     //Tamaño de la pregunta
-            insertar(lista, texto, tamano, nr_pregunta, 0, 0, 0, 0, 1);
+            insertar(lista, texto, tamano, nr_pregunta, 0, 0, 0, 0, 0);
             nr_pregunta++;                  //incrementa el número de las preguntas
         }
     } 
@@ -474,7 +456,7 @@ void manejarPreguntas(Lista *lista, const char *nombre_fichero){
                         if((question[0] == 'q' || question[0] == 'Q') && (len == 2)){  //terminamos el bucle
                             break;
                         }
-                        insertar(lista, question, len, 0, 0, 0, 0, 0, 1);       //insertamos cada pregunta en la lista, por defecto valores con 0 y 1.
+                        insertar(lista, question, len, 0, 0, 0, 0, 0, 0);       //insertamos cada pregunta en la lista, por defecto valores con 0 y 1.
                     }
                     copyListToFile(nombre_fichero, lista);    //pasamos la lista que ha sido actualizada al fichero.
                     break;
@@ -514,3 +496,73 @@ void manejarPreguntas(Lista *lista, const char *nombre_fichero){
         }
     }
 }
+
+
+
+/*  Primero elige un usuario cuantas preguntas se lleva a la encuesta. Creamos un array dinámico que tiene de primer elemento
+    su longitud que ha definido el usuario anteriormente y despues números aleatorias en un rango de la longitud de la lista.*/
+int *crearArrayDinamico(Lista *lista_preguntas){
+    int sizeOfList = listSize(*lista_preguntas);
+    int arraylength;
+    while(1){    // Loop para asegurar valor intruducido por el usuario
+        printf("\tCuantos preguntas desea para la encuesta?\n"
+                "\t(máximo %d preguntas): ", sizeOfList);
+        arraylength = getIntegerFromUser();
+        if(arraylength<=sizeOfList){   //comprobamos si el valor introducido no sea mas que las preguntas guradadas
+            break;
+        }else{
+            printf("\n\tError, sólamente hay %d preguntas guardadas!\n\n", sizeOfList);
+        }
+    }
+
+    arraylength+=1; //añadimos una entrada al array, para guarar la longitud del array, que sea la primera entrada
+    
+    int *random_array = malloc(sizeof(int)*arraylength); //se crea un array dinámico
+    if(random_array == NULL){                            //comprobamos que no apunta a '0'
+        printf("Error, No se puede asignar espacio en la memoria\n");
+        exit(EXIT_FAILURE);
+    }
+    memset(random_array, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
+    *random_array = arraylength; //en la primera entrada del array guardamos su longitud total.
+
+    srand(clock());     //usamos la función srand en combinación con la hora para crear un número aleatorio
+    /* En este bucle loop asignamos un valor aleatorio en nuestro array
+     dinámico con un máximo del tamaño como preguntas en la lista*/
+    for(int i=1;i<arraylength;i++){    //comenzamos por 1, la primera entrada es la longitud
+        int temp = rand()%sizeOfList+1;   //rand() devuelve un número aleatorio desde 1 hasta tamaño lista
+        bool exists = False;
+        for(int j=1;j<i;++j){  //vamos a comprobar si el valor ya existe en el array
+            if(*(random_array+j) == temp){
+                exists = True;
+                break;
+            }
+        }
+        if(!exists){
+            *(random_array+i) = temp;
+        }
+        else{
+            --i;  //si ya existe , descontamos del bucle uno y lo intentamos de nuevo
+        }
+    }
+    return random_array; //devolvemos el array creado
+}
+
+
+
+/*  Se crea una nueva lista de preguntas. Las preguntas en esta lista han sido seleccionado
+    con el número aleatorio que hemos pasado con el array dinámico a la función.*/
+void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *random_array){
+    int arraylength = *random_array;
+    //Ahora creamos una lista con preguntas aleatorias usando nuestro array
+    for(int k = 1; k<arraylength; k++){  //iteramos por el array
+        pNodo first = *lista_preguntas; 
+        while(first){                     //iteramos sobre la lista
+            if(first->numPregunta == *(random_array+k)){  //comprobamos si el número de la pregunta es igual al número aleatorio del array
+                int len = strlen(first->texto);
+                insertar(lista_aleatoria, first->texto, len, first->numPregunta,0,0,0,0,0);
+            }
+            first = first->next;
+        }
+    }
+}
+
