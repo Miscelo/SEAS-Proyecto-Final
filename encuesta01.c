@@ -45,6 +45,8 @@ int mainmenu();
 /* Imprime el menu secundario (Añadir, eliminar o ver pretuntas), devuele un 'char' para un caso switch */
 int submenu();
 
+char submenu2();
+
 /* Función que pide al usuario que introduzca un número que se devuelve */
 int getIntegerFromUser();
 
@@ -53,6 +55,8 @@ void insertar(Lista *lista, char pregunta[length_pregunta], int letras, int nr, 
 
 /* Quita un elemento de la lista elegido por la variable 'Pregunta numPregunta'. */
 void eliminar(Lista *lista, int num);
+
+void borrarLista(Lista *lista);
 
 /*Función devuelve cantidad de elementos que hay en la lista enlazada, '0' si está vacia*/
 int listSize(Lista lista);
@@ -89,6 +93,7 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
     int *dynArray;
     int repeticiones;
     int cantidad_preguntas;
+    char empezarEncuesta[2];   //variable para devolver un 'S' o 'N' para comenzar la encuesta
     int sizeOfList = listSize(*lista_preguntas);
     if(sizeOfList == 0){      
         printf("\n*********************************************************\n");
@@ -115,13 +120,14 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
 
     printf("\n\t¿Estas seguro que quiere comenzar la encuesta?\n"
             "\t\t[Si='S'/No='N']: ");
-    char empezarEncuesta[2];
     bool loop = True;
     while(loop == True){
         fgets(empezarEncuesta, 2, stdin);
         if((empezarEncuesta[0] == 'S' || empezarEncuesta[0] == 's')){  //terminamos el bucle
             loop = False;                
         }else if((empezarEncuesta[0] == 'N' || empezarEncuesta[0] == 'n')){  //terminamos el bucle
+            borrarLista(lista_aleatoria);   //Antes de salir liberamos la memoria
+            borrarLista(lista_preguntas);
             printf("\n*********************************************************\n");
             printf("\tFin del programa - Hasta la próxima");
             printf("\n*********************************************************\n");
@@ -130,8 +136,29 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
             printf("\n\tInputError! Por favor, introduzca S o N\n");
         }
     }
-
-    printf("start\n");
+    pNodo first;
+    first = *lista_aleatoria;
+    while(first != NULL){
+            printf("%d. %s\n", first->numPregunta, first->texto);
+            switch(submenu2()){
+                case 'a':
+                            printf("a\n");
+                            break;
+                        
+                case 'b':
+                            printf("b\n");
+                            break;
+                case 'c':
+                            printf("c\n");
+                            break;
+                case 'd':
+                            printf("c\n");
+                            break;
+            }
+            // fgets abcd
+            //if ('a')    //switchcase menu
+            first = first->next;
+    }
     //  Umfrage starten  encuesta()
     // EStá seguro que Usted quiere empezar la encuesta. (Sí/No)
 
@@ -175,6 +202,9 @@ int main(){
                     break;
             case 3:
                     printf("Fichero con resultados de las STATS\n");
+                    char abcd;
+                    abcd = submenu2();
+                    printf("%c\n", abcd);
                     break;
             case 4:
                     printf("\n*********************************************************\n"
@@ -237,6 +267,28 @@ int submenu(){
     return num;
 }
 
+
+
+char submenu2(){
+    char abcd[MAX];
+    int len;
+    printf("\t(a) Mala\n");
+    printf("\t(b) Normal\n");
+    printf("\t(c) Buena\n");
+    printf("\t(d) Excelente\n");
+    while(1){
+        printf("\n\tEliga: ");
+        fflush(stdin);
+        fgets(abcd, MAX, stdin);
+        len = strlen(abcd);
+        if((abcd[0]=='a'|| abcd[0]=='b' || abcd[0]=='c' || abcd[0]=='d') && len==2){
+            break;
+        } else {
+            printf("¡Por favor, introduzca a, b, c, d!: ");
+        }
+    };
+    return abcd[0];
+}
 
 
 
@@ -320,6 +372,16 @@ void eliminar(Lista *lista, int num){
     }
 }
 
+
+/* Eliminamos la lista con todos sus entradas usando la función 'eliminar()'*/
+void borrarLista(Lista *lista) {
+    renumerarPreguntas(lista);  //Renumeramos las preguntas en la lista 'numPregunta'
+    int listsize = listSize(*lista);
+    for(int i=listsize; i>=0; --i){    //bucle elimina cada entrada en la lista linea por linea
+        eliminar(lista, i);
+    }
+    lista = NULL;    //dejamos que la lista apunta a NULL
+}
 
 
 
