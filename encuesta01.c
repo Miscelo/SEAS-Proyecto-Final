@@ -11,6 +11,8 @@ Autor: <Michael Schossow> Fecha: <15.08.2022> */
 ************************************************************************************************************************
 */  
 
+/*********----------**********----------80********----------**********---------*/
+/*********----------**********----------100*******----------**********----------**********----------**********--------*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,7 +53,8 @@ char submenu2();
 int getIntegerFromUser();
 
 /* Inserta un elemento nuevo al final de la lista enlazada.*/
-void insertar(Lista *lista, char pregunta[length_pregunta], int letras, int nr, int rA, int rB, int rC, int rD, int iter);
+void insertar(Lista *lista, char pregunta[length_pregunta], int letras, int nr, 
+                int rA, int rB, int rC, int rD, int iter);
 
 /* Quita un elemento de la lista elegido por la variable 'Pregunta numPregunta'. */
 void eliminar(Lista *lista, int num);
@@ -85,6 +88,52 @@ int *crearArrayDinamico(Lista *lista_preguntas);
 void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *random_array);
 
 
+/*********----------**********----------80********----------**********---------*/
+
+/*********----------**********----------100*******----------**********----------**********----------**********--------*/
+
+
+/* Encuesta */
+void encuesta(Lista *lista_aleatoria, int repeticiones){
+    int loopCounter = 1;
+    printf("\n*********************************************************\n");
+    printf("\n*******************    Encuesta      ********************\n");
+    printf("\n*********************************************************\n");
+    
+    int c = 1;
+    while(c<=repeticiones){
+        printf("\n\t *** Encuestado %d *** \n", c);
+        pNodo first;
+        first = *lista_aleatoria;
+        while(first != NULL){
+            printf("%d. %s\n\n", loopCounter, first->texto);
+            switch(submenu2()){
+                case 'a':
+                            printf("\ta\n");
+                            first->respA+=1;
+                            break;
+                        
+                case 'b':
+                            printf("\tb\n");
+                            first->respB+=1;
+                            break;
+                case 'c':
+                            printf("\tc\n");
+                            first->respC+=1;
+                            break;
+                case 'd':
+                            printf("\tc\n");
+                            first->respD+=1;
+                            break;
+            }
+            first->iteraciones+=1;
+            first = first->next;
+            loopCounter++;
+        }
+        loopCounter = 1;
+        c++;
+    }
+}
 
 
 
@@ -93,7 +142,7 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
     int *dynArray;
     int repeticiones;
     int cantidad_preguntas;
-    char empezarEncuesta[2];   //variable para devolver un 'S' o 'N' para comenzar la encuesta
+    char empezarEncuesta[MAX];   //variable para devolver un 'S' o 'N' para comenzar la encuesta
     int sizeOfList = listSize(*lista_preguntas);
     if(sizeOfList == 0){      
         printf("\n*********************************************************\n");
@@ -122,7 +171,7 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
             "\t\t[Si='S'/No='N']: ");
     bool loop = True;
     while(loop == True){
-        fgets(empezarEncuesta, 2, stdin);
+        fgets(empezarEncuesta, MAX, stdin);
         if((empezarEncuesta[0] == 'S' || empezarEncuesta[0] == 's')){  //terminamos el bucle
             loop = False;                
         }else if((empezarEncuesta[0] == 'N' || empezarEncuesta[0] == 'n')){  //terminamos el bucle
@@ -130,46 +179,41 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
             borrarLista(lista_preguntas);
             printf("\n*********************************************************\n");
             printf("\tFin del programa - Hasta la próxima");
-            printf("\n*********************************************************\n");
+            printf("\n*********************************************************\n\n");
             exit(1);    
         }else{
-            printf("\n\tInputError! Por favor, introduzca S o N\n");
+            printf("\n\tInputError! Por favor, introduzca S o N: ");
         }
     }
-    pNodo first;
-    first = *lista_aleatoria;
-    while(first != NULL){
-            printf("%d. %s\n", first->numPregunta, first->texto);
-            switch(submenu2()){
-                case 'a':
-                            printf("a\n");
-                            break;
-                        
-                case 'b':
-                            printf("b\n");
-                            break;
-                case 'c':
-                            printf("c\n");
-                            break;
-                case 'd':
-                            printf("c\n");
-                            break;
-            }
-            // fgets abcd
-            //if ('a')    //switchcase menu
-            first = first->next;
+     
+    printf("\n*********************************************************\n");
+    printf("\n*******************    Encuesta      ********************\n");
+    printf("\n*********************************************************\n");
+    
+    encuesta(lista_aleatoria, repeticiones);  // Encuesta, bucle por las preguntas
+
+    // func() statistics
+    
+
+
+    printAll(*lista_aleatoria);   // borrar
+
+}
+
+
+
+void printAll(Lista lista){
+    while(lista != NULL){
+            printf("%d. %s, %d, %d, %d, %d, %d, %d\n", lista->numPregunta, lista->texto,
+            lista->tamano, lista->respA, lista->respB, lista->respC, lista->respD, lista->iteraciones);
+            lista = lista->next;
     }
-    //  Umfrage starten  encuesta()
-    // EStá seguro que Usted quiere empezar la encuesta. (Sí/No)
+}
 
 
-                // if iteracion == 1    ++  funcion die den wert iteration um 1 erhöht
 
-    // 1. Pregunta                  -> 2. PRegunta           -> 3. Pregunta
-        //(a) Mala
-        //(b) Normal
-        //(c) Buena
-        //(d) Excelente
+
+
 
     //Estadistica ->file : resultado_encuesta. Vielleicht noch ne nummer Iteration davor
     // Iter: Resp. A = 66%, Resp. B = 33%, Resp. C = 0%, Resp. D = 0%
@@ -177,7 +221,7 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
     // imprimir resultado de la encuesta
 
     // vaciar lista aleatoria
-}
+
 
 
 
@@ -276,17 +320,17 @@ char submenu2(){
     printf("\t(b) Normal\n");
     printf("\t(c) Buena\n");
     printf("\t(d) Excelente\n");
-    while(1){
-        printf("\n\tEliga: ");
+    do{
+        printf("\n\tIntrocuzca: ");
         fflush(stdin);
         fgets(abcd, MAX, stdin);
         len = strlen(abcd);
         if((abcd[0]=='a'|| abcd[0]=='b' || abcd[0]=='c' || abcd[0]=='d') && len==2){
             break;
         } else {
-            printf("¡Por favor, introduzca a, b, c, d!: ");
+            printf("\nPor favor, ¡elige entre [a/b/c/d]!\n");
         }
-    };
+    }while(1);
     return abcd[0];
 }
 
@@ -300,7 +344,7 @@ int getIntegerFromUser(){
     int  numero_int;
     //Uso de fgets para evitar overflow
     fflush(stdin);
-    fgets(buffer, sizeof buffer, stdin);          //guarda una linea de flujo de dato
+    fgets(buffer, sizeof(buffer), stdin);          //guarda una linea de flujo de dato
     if(strchr(buffer, '\n') == NULL){             //Comprueba que toda la linea està leida y el 'buffer' no se ha quedado pequeño
         printf("ERROR! El numero introducido es demasiado largo!\n");
         exit(EXIT_FAILURE);
@@ -627,4 +671,6 @@ void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *ra
         }
     }
 }
+
+
 
