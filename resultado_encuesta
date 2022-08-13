@@ -1,24 +1,27 @@
-1. ¿Und wenn es 5 sind?
+1. ¿acht oben drauf?
  (a) Mala
  (b) Normal
  (c) Buena
  (d) excelente
-Resp. A = 0, Resp. B = 0, Resp. C = 0, Resp. D = 100
+*******************************************************
+Resp. A = 33, Resp. B = 0, Resp. C = 0, Resp. D = 66
 
 
-2. ¿sechs auch?
+2. ¿A ver como es Kafka?
  (a) Mala
  (b) Normal
  (c) Buena
  (d) excelente
-Resp. A = 0, Resp. B = 0, Resp. C = 100, Resp. D = 0
+*******************************************************
+Resp. A = 33, Resp. B = 33, Resp. C = 0, Resp. D = 33
 
 
-3. ¿A ver como es Kafka?
+3. ¿Vier sind besser?
  (a) Mala
  (b) Normal
  (c) Buena
  (d) excelente
-Resp. A = 0, Resp. B = 0, Resp. C = 0, Resp. D = 100
+*******************************************************
+Resp. A = 0, Resp. B = 0, Resp. C = 33, Resp. D = 66
 
 

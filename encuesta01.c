@@ -107,12 +107,11 @@ void printResumenEncuesta(const char *nombre_fichero3);
 
 
 
-
 /****************************************************************************************************/
 /**********************                       main - function                   *********************/
 /****************************************************************************************************/
-
-/* Main function contiene el loop que dejá eligir al usuario del menú principal */
+/*                                                                                                  */
+/*        Main function contiene el loop que dejá eligir al usuario del menú principal              */
 int main(){
     /* Creamos instancias de Lista */
     Lista lista1 = NULL;                                // lista1 contendrá todas las preguntas
@@ -120,6 +119,7 @@ int main(){
     const char *fichero1 = "fichero.txt";               //fichero que guarda todas las preguntas
     const char *fichero2 = "de_solucion";               //fichero que guarda pregunta con mejor resultado.
     const char *fichero3 = "resultado_encuesta";        //fichero que guarde encuesta con resultado estadístico.
+   
     copyFileToList(&lista1, fichero1);                   //Actualiza la lista enlazada con datos en fichero si existen
     
     bool loop = True; //Valor para determinar el loop.
@@ -187,7 +187,7 @@ int submenu(){
     do{
         num = getIntegerFromUser();        //limitar al usuario introducir números 1 a 4
         if(num<0 || num >4){
-            printf("\n\tERROR al introduzir número!\n"
+            printf("\n\t¡ERROR al introducir el número!\n"
                     "\tPor favor, eliga un número de 1 a 4: ");
         }
     }while(num < 0 || num > 4);
@@ -206,7 +206,7 @@ char submenu2(){
     printf("\t(c) Buena\n");
     printf("\t(d) Excelente\n");
     do{
-        printf("\n\tIntrocuzca: ");
+        printf("\n\tIntroduzca: ");
         fflush(stdin);
         fgets(abcd, MAX, stdin);
         len = strlen(abcd);
@@ -508,7 +508,6 @@ int *crearArrayDinamico(Lista *lista_preguntas){
     memset(dinamic_array, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
     *dinamic_array = arraylength; //en la primera entrada del array guardamos su longitud total.
 
-    //
     printf("\n\t¿Desea que las preguntas serán elegido de forma aleatoria?\n"
             "\t\t[Si='S'/No='N']: ");
     bool loop = True;
@@ -580,7 +579,7 @@ void encuesta(Lista *lista_encuesta, int repeticiones){
     renumerarPreguntas(lista_encuesta);  
     int c = 1;
     while(c<=repeticiones){
-        printf("\n\n-----------------------------    Encuestado %d    ------------------------------\n\n", c);
+        printf("\n\n-----------------------------    Encuestado %d    -------------------------------\n\n", c);
         pNodo first;
         first = *lista_encuesta;
         while(first != NULL){
@@ -638,9 +637,9 @@ void statistics(Lista *lista, const char *nombre_fichero2, const char *nombre_fi
                     "\tEl problema puede tener varios motivos.\n"
                     "\tComprueban sus derechos de escribir en la carpeta!\n" );
     }
-
     renumerarPreguntas(lista);
-
+    printf("\n\n********************************************************************************\n");
+    printf("***************            Estadística de la encuesta          *****************\n\n");
     int numPregunta, rA, rB, rC, rD;  // en estas variables se guardaran los porcentajes de la respuesta elegida
     pNodo first;
     first = *lista;
@@ -670,6 +669,7 @@ void statistics(Lista *lista, const char *nombre_fichero2, const char *nombre_fi
             int len = strlen(first->texto) + 15 ;
             char line[len];
             //Comprobamos quien tiene el valor máximo y lo pasamos al fichero2 
+            // Si el mismo valor sale dos veces, entonces se agregan las dos preguntas al fichero
             if(first->respA == maximum){
                 strcpy(line, first->texto);
                 strcat(line, mala);
@@ -712,7 +712,7 @@ void statistics(Lista *lista, const char *nombre_fichero2, const char *nombre_fi
 
             fputs(excelente, fichero3);
             fputs("\n", fichero3);
-            fputs("*******************************************************\n", fichero2);
+            fputs("*******************************************************\n", fichero3);
             /* La última linea que queda por añadir son los resultados estadísticos 
                que viene ahora. Con sprintf()  lo cambiamos de integer a string. */
             fputs("Resp. A = ", fichero3);
@@ -728,11 +728,11 @@ void statistics(Lista *lista, const char *nombre_fichero2, const char *nombre_fi
             sprintf(str, "%d", rD);
             fputs(str, fichero3);
             fputs("\n\n\n", fichero3);
-
             first = first->next;    // pasamos en el bucle un elemento 
     }
     fclose(fichero2);
     fclose(fichero3);
+    printf("\n");
 }
 
 
