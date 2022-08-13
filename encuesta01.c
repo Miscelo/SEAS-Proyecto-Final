@@ -231,7 +231,7 @@ int getIntegerFromUser(){
     fflush(stdin);
     fgets(buffer, sizeof(buffer), stdin);          //guarda una linea de flujo de dato
     if(strchr(buffer, '\n') == NULL){             //Comprueba que toda la linea està leida y el 'buffer' no se ha quedado pequeño
-        printf("ERROR! El numero introducido es demasiado largo!\n");
+        printf("ERROR! El número introducido es demasiado largo!\n");
         exit(EXIT_FAILURE);
     }
     numero_long = strtol(buffer, &p, 10);    // cambiar una cadena a un número entero del tipo 'long'
@@ -655,8 +655,8 @@ void statistics(Lista *lista, const char *nombre_fichero2, const char *nombre_fi
             rC = (int)(((double)first->respC * 100) / total);
             rD = (int)(((double)first->respD * 100) / total);
             // : Resp. A = 66%,  Resp. B = 33%,  Resp. C = 0%, Resp. D = 0%
-            printf("Pregunta %d: Respuesta A %d%%,  Respuesta B %d%%,  Respusta C %d%%,  "
-                "Respusta D %d%%\n", numPregunta, rA, rB, rC, rD);
+            printf("Pregunta %d: Respuesta A %d%%,  Respuesta B %d%%,  Respuesta C %d%%,  "
+                "Respuesta D %d%%\n", numPregunta, rA, rB, rC, rD);
 
             /* Hacemos un simple bucle por el array para reconocer su valor máximo*/
             for(int i = 0;i<4;i++){
