@@ -80,12 +80,12 @@ void copyListToFile(const char *nombre_fichero, Lista *lista);
 void manejarPreguntas(Lista *lista, const char *nombre_fichero);
 
 /*  Primero elige un usuario cuantas preguntas se lleva a la encuesta. Creamos un array dinámico que tiene de primer elemento
-    su longitud que ha definido el usuario anteriormente y despues números aleatorias en un rango de la longitud de la lista.*/
+    su longitud y despues números aleatorias en un rango de la longitud de la lista.*/
 int *crearArrayDinamico(Lista *lista_preguntas);
 
 /*  Se crea una nueva lista de preguntas. Las preguntas en esta lista han sido seleccionado
     con el número aleatorio que hemos pasado con el array dinámico a la función.*/
-void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *random_array);
+void crearListaEncuesta(Lista *lista_preguntas, Lista *lista_encuesta, int *random_array);
 
 
 /*********----------**********----------80********----------**********---------*/
@@ -94,51 +94,12 @@ void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *ra
 
 
 /* Encuesta */
-void encuesta(Lista *lista_aleatoria, int repeticiones){
-    int loopCounter = 1;
-    printf("\n*********************************************************\n");
-    printf("\n*******************    Encuesta      ********************\n");
-    printf("\n*********************************************************\n");
-    
-    int c = 1;
-    while(c<=repeticiones){
-        printf("\n\t *** Encuestado %d *** \n", c);
-        pNodo first;
-        first = *lista_aleatoria;
-        while(first != NULL){
-            printf("%d. %s\n\n", loopCounter, first->texto);
-            switch(submenu2()){
-                case 'a':
-                            printf("\ta\n");
-                            first->respA+=1;
-                            break;
-                        
-                case 'b':
-                            printf("\tb\n");
-                            first->respB+=1;
-                            break;
-                case 'c':
-                            printf("\tc\n");
-                            first->respC+=1;
-                            break;
-                case 'd':
-                            printf("\tc\n");
-                            first->respD+=1;
-                            break;
-            }
-            first->iteraciones+=1;
-            first = first->next;
-            loopCounter++;
-        }
-        loopCounter = 1;
-        c++;
-    }
-}
+void encuesta(Lista *lista_encuesta, int repeticiones);
 
 
 
 /* */
-void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char *nombre_fichero){
+void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_encuesta, const char *nombre_fichero){
     int *dynArray;
     int repeticiones;
     int cantidad_preguntas;
@@ -152,12 +113,13 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
         printf("\n*********************************************************\n");
     }
     
+    /*recibimos una array con las números de las preguntas que usamos en la encusta.*/
     dynArray = crearArrayDinamico(lista_preguntas);
-    crearListaAleatoria(lista_preguntas, lista_aleatoria, dynArray);
+    /*Crea una lista que guarda las preguntas que usaremos para la encusta. */
+    crearListaEncuesta(lista_preguntas, lista_encuesta, dynArray);
 
     
-    printf("\n\tCuantos veces se debe repitir\n"
-            "\tla la encuesta?: ");
+    printf("\n\t¿Cuantos veces se debe repitir la la encuesta?: ");
     repeticiones = getIntegerFromUser();
 
     cantidad_preguntas = *dynArray - 1;
@@ -175,7 +137,7 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
         if((empezarEncuesta[0] == 'S' || empezarEncuesta[0] == 's')){  //terminamos el bucle
             loop = False;                
         }else if((empezarEncuesta[0] == 'N' || empezarEncuesta[0] == 'n')){  //terminamos el bucle
-            borrarLista(lista_aleatoria);   //Antes de salir liberamos la memoria
+            borrarLista(lista_encuesta);   //Antes de salir liberamos la memoria
             borrarLista(lista_preguntas);
             printf("\n*********************************************************\n");
             printf("\tFin del programa - Hasta la próxima");
@@ -186,20 +148,145 @@ void iniciarEncuesta(Lista *lista_preguntas, Lista *lista_aleatoria, const char 
         }
     }
      
-    printf("\n*********************************************************\n");
-    printf("\n*******************    Encuesta      ********************\n");
-    printf("\n*********************************************************\n");
+    encuesta(lista_encuesta, repeticiones);  // Encuesta, bucle por las preguntas
     
-    encuesta(lista_aleatoria, repeticiones);  // Encuesta, bucle por las preguntas
+    statistics(lista_encuesta);
 
-    // func() statistics
+
+
     
-
-
-    printAll(*lista_aleatoria);   // borrar
-
 }
 
+
+
+void statistics(Lista *lista){
+    int numbers[4];
+    char mala[] = {" (a) Mala"};
+    char normal[] ={" (b) Normal"};
+    char buena[] = {" (c) Buena"};
+    char excelente[] = {" (d) excelente"};
+    int maximum = 0;
+    
+    FILE *fichero = fopen("de_solucion", "w");
+    if(!fichero){
+            printf( "\tProblemas al abrir el fichero!\n"
+                    "\tEl problema puede tener varios motivos.\n"
+                    "\tComprueban sus derechos de escribir en la carpeta!\n" );
+    }
+
+    FILE *fichero2 = fopen("resultado_encuesta", "w");
+    if(!fichero2){
+            printf( "\tProblemas al abrir el fichero!\n"
+                    "\tEl problema puede tener varios motivos.\n"
+                    "\tComprueban sus derechos de escribir en la carpeta!\n" );
+    }
+
+    renumerarPreguntas(lista);
+
+    int numPregunta, rA, rB, rC, rD;
+    pNodo first;
+    first = *lista;
+    while(first != NULL){
+            numPregunta = first->numPregunta;
+            double total = first->respA + first->respB + first->respC + first->respD;
+            numbers[0] = first->respA;
+            numbers[1] = first->respB;
+            numbers[2] = first->respC;
+            numbers[3] = first->respD;
+            rA = (int)(((double)first->respA * 100) / total); //cambiar a porcentaje
+            rB = (int)(((double)first->respB * 100) / total);
+            rC = (int)(((double)first->respC * 100) / total);
+            rD = (int)(((double)first->respD * 100) / total);
+            // : Resp. A = 66%,  Resp. B = 33%,  Resp. C = 0%, Resp. D = 0%
+            printf("Pregunta %d: Respuesta A %d%%,  Respuesta B %d%%,  Respusta C %d%%,  "
+                "Respusta D %d%%\n", numPregunta, rA, rB, rC, rD);
+
+            for(int i = 0;i<4;i++){
+                if(numbers[i]>maximum){
+                    maximum = numbers[i];
+                }        
+            }
+
+            
+
+            int len = strlen(first->texto) + 21 ;
+            char line[len];
+            if(first->respA == maximum){
+                strcpy(line, first->texto);
+                strcat(line, mala);
+                fputs(line, fichero);
+                fputs("\n", fichero);
+            } else if(first->respB == maximum){
+                strcpy(line, first->texto);
+                strcat(line, normal);
+                fputs(line, fichero);
+                fputs("\n", fichero);
+            } else if(first->respC == maximum){
+                strcpy(line, first->texto);
+                strcat(line, buena);
+                fputs(line, fichero);
+                fputs("\n", fichero);
+            } else if(first->respD == maximum){
+                strcpy(line, first->texto);
+                strcat(line, excelente);
+                fputs(line, fichero);
+                fputs("\n", fichero);
+            }
+
+            
+            char str[64];
+            sprintf(str, "%d", numPregunta);
+            strcpy(line, str);
+            strcat(line, ". ");
+            strcat(line, first->texto);
+            fputs(line, fichero2);
+            fputs("\n", fichero2);
+            fputs(mala, fichero2);
+            fputs("\n", fichero2);
+
+            fputs(normal, fichero2);
+            fputs("\n", fichero2);
+            fputs(buena, fichero2);
+            fputs("\n", fichero2);
+
+            fputs(excelente, fichero2);
+            fputs("\n", fichero2);
+            fputs("*******************************************************\n", fichero2);
+            fputs("Resp. A = ", fichero2);
+            sprintf(str, "%d", rA);
+            fputs(str, fichero2);
+            fputs(", Resp. B = ", fichero2);
+            sprintf(str, "%d", rB);
+            fputs(str, fichero2);
+            fputs(", Resp. C = ", fichero2);
+            sprintf(str, "%d", rC);
+            fputs(str, fichero2);
+            fputs(", Resp. D = ", fichero2);
+            sprintf(str, "%d", rD);
+            fputs(str, fichero2);
+            fputs("\n\n\n", fichero2);
+
+
+            first = first->next;
+    }
+    fclose(fichero);
+    fclose(fichero2);
+    /*genere un fichero denominado “De Solución” donde aparecerán las preguntas realizadas
+     junto con las respuestas que más porcentaje obtuvieron para cada una de ellas*/
+
+    // 1. ¿Como estas? (a) mala 66%
+    // 2. ¿whtf?       (c) buena 80%
+    // 3. ¿no?         (d) excelente 100%
+    // 4. ¿no no?      (a) mala 50% , (d) excelente 50%
+    // 5. ¿si no no ?   (a) mala 30%, (b) buena 30%, (c) buenisima 30%
+
+      //      previous = first;
+        //    strcpy(pregunta, previous->texto);
+          //  fputs(pregunta, fichero);  //Añade la pregunta al fichero
+         //   fputs("\n", fichero);      //Añade 'salto linea' a la pregunta    
+        
+        //fclose(fichero);
+}
 
 
 void printAll(Lista lista){
@@ -232,7 +319,9 @@ int main(){
     /* Creamos instancias de Lista */
     Lista lista1 = NULL;           // lista1 contiene todas las preguntas
     Lista lista2 = NULL;           // lista2 contiene una seleción aleatoria de preguntas
-    const char *fichero = "fichero3.txt";           //fichero que guarda todas las preguntas
+    const char *fichero = "fichero.txt";           //fichero que guarda todas las preguntas
+    //const char *fichero2 = "de_solucion";
+    //const char *fichero3 = "resultado_encuesta";
     copyFileToList(&lista1, fichero);              //Actualiza la lista enlazada con datos en fichero si existen
     
     bool loop = True; //Valor para determinar el loop.
@@ -246,9 +335,17 @@ int main(){
                     break;
             case 3:
                     printf("Fichero con resultados de las STATS\n");
-                    char abcd;
-                    abcd = submenu2();
-                    printf("%c\n", abcd);
+                    FILE *resultado = fopen("resultado_encuesta", "r");
+                    if(resultado == NULL){
+                        printf( "\tProblemas al leer el fichero!\n");
+                    } else {
+		                char letra;
+		                while((letra = fgetc(resultado)) != EOF){
+			                printf("%c", letra);
+		                }
+	                }
+                    fclose(resultado);
+                    
                     break;
             case 4:
                     printf("\n*********************************************************\n"
@@ -520,12 +617,10 @@ void copyListToFile(const char *nombre_fichero, Lista *lista){
         // antes de pasar los datos de la lista al fichero, renumbramos las preguntas por ser caso.
         renumerarPreguntas(lista);   //renumera la variable 'numPregunta' de 1 hasta final por si estan mal numerados anteriormente
 
-        pNodo first, previous;
+        pNodo first;
         first = *lista;
-        previous = NULL;
         while(first){               //Iteramos sobre la lista
-            previous = first;
-            strcpy(pregunta, previous->texto);
+            strcpy(pregunta, first->texto);
             fputs(pregunta, fichero);  //Añade la pregunta al fichero
             fputs("\n", fichero);      //Añade 'salto linea' a la pregunta    
             first = first->next;
@@ -605,11 +700,13 @@ void manejarPreguntas(Lista *lista, const char *nombre_fichero){
 
 
 
-/*  Primero elige un usuario cuantas preguntas se lleva a la encuesta. Creamos un array dinámico que tiene de primer elemento
-    su longitud que ha definido el usuario anteriormente y despues números aleatorias en un rango de la longitud de la lista.*/
+/*  Primero elige un usuario cuantas preguntas se lleva a la encuesta. Creamos un array dinámico
+ que tiene de primer elemento su longitud que ha definido el usuario anteriormente 
+ y despues números elegidos por el usuario o números aleatorias en un rango de la longitud de la lista.*/
 int *crearArrayDinamico(Lista *lista_preguntas){
     int sizeOfList = listSize(*lista_preguntas);
     int arraylength;
+    char encuestaAleatoria[MAX];
     while(1){    // Loop para asegurar valor intruducido por el usuario
         printf("\tCuantos preguntas desea para la encuesta?\n"
                 "\t(máximo %d preguntas): ", sizeOfList);
@@ -623,41 +720,63 @@ int *crearArrayDinamico(Lista *lista_preguntas){
 
     arraylength+=1; //añadimos una entrada al array, para guarar la longitud del array, que sea la primera entrada
     
-    int *random_array = malloc(sizeof(int)*arraylength); //se crea un array dinámico
-    if(random_array == NULL){                            //comprobamos que no apunta a '0'
+    int *dinamic_array = malloc(sizeof(int)*arraylength); //se crea un array dinámico
+    if(dinamic_array == NULL){                            //comprobamos que no apunta a '0'
         printf("Error, No se puede asignar espacio en la memoria\n");
         exit(EXIT_FAILURE);
     }
-    memset(random_array, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
-    *random_array = arraylength; //en la primera entrada del array guardamos su longitud total.
+    memset(dinamic_array, 0, sizeof(int) * arraylength);  // inizalizar array con '0'
+    *dinamic_array = arraylength; //en la primera entrada del array guardamos su longitud total.
 
-    srand(clock());     //usamos la función srand en combinación con la hora para crear un número aleatorio
-    /* En este bucle loop asignamos un valor aleatorio en nuestro array
-     dinámico con un máximo del tamaño como preguntas en la lista*/
-    for(int i=1;i<arraylength;i++){    //comenzamos por 1, la primera entrada es la longitud
-        int temp = rand()%sizeOfList+1;   //rand() devuelve un número aleatorio desde 1 hasta tamaño lista
-        bool exists = False;
-        for(int j=1;j<i;++j){  //vamos a comprobar si el valor ya existe en el array
-            if(*(random_array+j) == temp){
-                exists = True;
-                break;
+    //
+    printf("\n\t¿Desea que las preguntas serán elegido de forma aleatoria?\n"
+            "\t\t[Si='S'/No='N']: ");
+    bool loop = True;
+    while(loop == True){
+        fgets(encuestaAleatoria, MAX, stdin);
+        if((encuestaAleatoria[0] == 'S' || encuestaAleatoria[0] == 's')){  //terminamos el bucle
+            srand(clock());     //usamos la función srand en combinación con la hora para crear un número aleatorio
+            /* En este bucle loop asignamos un valor aleatorio en nuestro array
+            dinámico con un máximo del tamaño como preguntas en la lista*/
+            for(int i=1;i<arraylength;i++){    //comenzamos por 1, la primera entrada es la longitud
+                int temp = rand()%sizeOfList+1;   //rand() devuelve un número aleatorio desde 1 hasta tamaño lista
+                bool exists = False;
+                for(int j=1;j<i;++j){  //vamos a comprobar si el valor ya existe en el array
+                    if(*(dinamic_array+j) == temp){
+                        exists = True;
+                        break;
+                    }
+                }
+                if(!exists){
+                    *(dinamic_array+i) = temp;
+                }
+                else{
+                    --i;  //si ya existe , descontamos del bucle uno y lo intentamos de nuevo
+                }
             }
-        }
-        if(!exists){
-            *(random_array+i) = temp;
-        }
-        else{
-            --i;  //si ya existe , descontamos del bucle uno y lo intentamos de nuevo
+            loop = False;                
+        }else if((encuestaAleatoria[0] == 'N' || encuestaAleatoria[0] == 'n')){  //terminamos el bucle
+            printPreguntas(*lista_preguntas);
+            printf("\nIntroduzca %d números de las preguntas que desa usar para la encusta.\n", arraylength-1);
+            for(int i=1;i<arraylength;i++){
+                *(dinamic_array+i) = getIntegerFromUser();       
+            }
+            
+            loop = False;
+        }else{
+            printf("\n\tInputError! Por favor, introduzca S o N: ");
         }
     }
-    return random_array; //devolvemos el array creado
+    //
+
+    return dinamic_array; //devolvemos el array creado
 }
 
 
 
 /*  Se crea una nueva lista de preguntas. Las preguntas en esta lista han sido seleccionado
     con el número aleatorio que hemos pasado con el array dinámico a la función.*/
-void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *random_array){
+void crearListaEncuesta(Lista *lista_preguntas, Lista *lista_encuesta, int *random_array){
     int arraylength = *random_array;
     //Ahora creamos una lista con preguntas aleatorias usando nuestro array
     for(int k = 1; k<arraylength; k++){  //iteramos por el array
@@ -665,7 +784,7 @@ void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *ra
         while(first){                     //iteramos sobre la lista
             if(first->numPregunta == *(random_array+k)){  //comprobamos si el número de la pregunta es igual al número aleatorio del array
                 int len = strlen(first->texto);
-                insertar(lista_aleatoria, first->texto, len, first->numPregunta,0,0,0,0,0);
+                insertar(lista_encuesta, first->texto, len, first->numPregunta,0,0,0,0,0);
             }
             first = first->next;
         }
@@ -674,3 +793,40 @@ void crearListaAleatoria(Lista *lista_preguntas, Lista *lista_aleatoria, int *ra
 
 
 
+/* Encuesta */
+void encuesta(Lista *lista_encuesta, int repeticiones){
+    int loopCounter = 1;
+    printf("\n*********************************************************\n");
+    printf("\n*******************    Encuesta      ********************\n");
+    printf("\n*********************************************************\n");
+    
+    int c = 1;
+    while(c<=repeticiones){
+        printf("\n\t *** Encuestado %d *** \n", c);
+        pNodo first;
+        first = *lista_encuesta;
+        while(first != NULL){
+            printf("%d. %s\n\n", loopCounter, first->texto);
+            switch(submenu2()){
+                case 'a':
+                            first->respA+=1;
+                            break;
+                        
+                case 'b':
+                            first->respB+=1;
+                            break;
+                case 'c':
+                            first->respC+=1;
+                            break;
+                case 'd':
+                            first->respD+=1;
+                            break;
+            }
+            first->iteraciones+=1;
+            first = first->next;
+            loopCounter++;
+        }
+        loopCounter = 1;
+        c++;
+    }
+}
