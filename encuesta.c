@@ -1,7 +1,7 @@
-/*Programa: <Trabajo Obligatorio ESTRUCTURA DE DATOS>
+/*Programa: <Trabajo ESTRUCTURA DE DATOS>
 Autor: <Michael Schossow> Fecha: <16.08.2022> */
 
-/****************************** Trabajo obligatorio - CURSO Programación C - SEAS **************************************
+/****************************** Generador de una encuesta **************************************
 *  Ejercicio: Crear un programa que elige preguntas aleatoriamente de un fichero y lo seleccióna *
 *             para hacer una encuensta. 
 *             - La respuesta de cada pregunta podrán tener sólo uno de entre cuatro valores predefinidos.
@@ -10,6 +10,7 @@ Autor: <Michael Schossow> Fecha: <16.08.2022> */
 *             - Estadisticas de la encuesta y que el resultado ganador se guarda en otro fichero.
 ************************************************************************************************************************
 */  
+
 
 #include <stdio.h>
 #include <stdlib.h>
