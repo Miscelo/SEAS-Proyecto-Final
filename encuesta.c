@@ -8,7 +8,7 @@ Autor: <Michael Schossow> Fecha: <16.08.2022> */
 *             - El sistema deberá realizar un número indeterminado de repeticiones de la encusta.
 *             - El usuario puede añadir preguntas al fichero.
 *             - Estadisticas de la encuesta y que el resultado ganador se guarda en otro fichero.
-************************************************************************************************************************
+************************************************************************************************
 */  
 
 
